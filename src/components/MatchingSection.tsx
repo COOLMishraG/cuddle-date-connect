@@ -2,9 +2,11 @@
 import { useState } from 'react';
 import PetCard from './PetCard';
 import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
 const MatchingSection = () => {
   const [currentPetIndex, setCurrentPetIndex] = useState(0);
+  const navigate = useNavigate();
 
   // Mock data - replace with your API data
   const pets = [
@@ -69,7 +71,7 @@ const MatchingSection = () => {
 
   if (pets.length === 0) {
     return (
-      <section id="breeding" className="py-20 bg-background">
+      <section id="breeding" className="py-16 bg-background">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold mb-8">No more pets to show</h2>
           <Button onClick={resetStack} className="btn-gradient">
@@ -81,20 +83,20 @@ const MatchingSection = () => {
   }
 
   return (
-    <section id="breeding" className="py-20 bg-background">
+    <section id="breeding" className="py-16 bg-background">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+        <div className="text-center mb-12">
+          <h2 className="text-4xl md:text-5xl font-bold mb-4 fredoka text-foreground">
             Find Your Pet's Perfect Match
           </h2>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            Swipe through potential breeding partners for your pet. Match with compatible pets and connect with their owners to start meaningful conversations.
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+            Swipe through potential breeding partners for your pet. Match with compatible pets and connect with their owners.
           </p>
         </div>
 
         <div className="max-w-md mx-auto relative">
           {/* Pet Card Stack with subtle depth */}
-          <div className="relative h-[600px]">
+          <div className="relative h-[550px]">
             {pets.slice(currentPetIndex, currentPetIndex + 3).map((pet, index) => (
               <div
                 key={pet.id}
@@ -102,7 +104,7 @@ const MatchingSection = () => {
                   index === 0 ? 'z-30' : index === 1 ? 'z-20 scale-98 opacity-80' : 'z-10 scale-96 opacity-60'
                 }`}
                 style={{
-                  transform: index > 0 ? `translateY(${index * 8}px) translateX(${index * 2}px) scale(${1 - index * 0.02})` : 'none'
+                  transform: index > 0 ? `translateY(${index * 6}px) translateX(${index * 2}px) scale(${1 - index * 0.02})` : 'none'
                 }}
               >
                 {index === 0 && (
@@ -113,7 +115,7 @@ const MatchingSection = () => {
                 )}
                 {index > 0 && (
                   <div className="w-full max-w-sm mx-auto">
-                    <div className="bg-card rounded-lg subtle-elevation h-[500px] border border-border"></div>
+                    <div className="bg-card rounded-lg subtle-elevation h-[450px] border border-border"></div>
                   </div>
                 )}
               </div>
@@ -121,8 +123,8 @@ const MatchingSection = () => {
           </div>
 
           {/* Counter */}
-          <div className="text-center mt-8">
-            <div className="inline-flex items-center bg-card rounded-lg px-6 py-3 subtle-elevation border border-border">
+          <div className="text-center mt-6">
+            <div className="inline-flex items-center bg-card rounded-lg px-4 py-2 subtle-elevation border border-border">
               <span className="text-sm font-medium text-muted-foreground">
                 {currentPetIndex + 1} of {pets.length} pets
               </span>
@@ -131,22 +133,32 @@ const MatchingSection = () => {
         </div>
 
         {/* Instructions */}
-        <div className="text-center mt-12">
-          <div className="inline-flex items-center space-x-8 bg-card rounded-lg px-8 py-4 subtle-elevation border border-border">
+        <div className="text-center mt-8">
+          <div className="inline-flex items-center space-x-6 bg-card rounded-lg px-6 py-3 subtle-elevation border border-border">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
-                <span className="text-red-600 text-sm">←</span>
+              <div className="w-6 h-6 bg-red-100 rounded-full flex items-center justify-center">
+                <span className="text-red-600 text-xs">←</span>
               </div>
-              <span className="text-sm font-medium text-muted-foreground">Pass</span>
+              <span className="text-xs font-medium text-muted-foreground">Pass</span>
             </div>
-            <div className="w-px h-6 bg-border"></div>
+            <div className="w-px h-4 bg-border"></div>
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                <span className="text-green-600 text-sm">→</span>
+              <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+                <span className="text-green-600 text-xs">→</span>
               </div>
-              <span className="text-sm font-medium text-muted-foreground">Match</span>
+              <span className="text-xs font-medium text-muted-foreground">Match</span>
             </div>
           </div>
+        </div>
+
+        {/* Call to Action */}
+        <div className="text-center mt-8">
+          <Button 
+            onClick={() => navigate('/breeding')} 
+            className="btn-gradient px-8 py-3"
+          >
+            View All Breeding Options
+          </Button>
         </div>
       </div>
     </section>
