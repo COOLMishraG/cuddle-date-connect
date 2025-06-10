@@ -11,7 +11,6 @@ import Veterinary from "./pages/Veterinary";
 import Community from "./pages/Community";
 import About from "./pages/About";
 import SignIn from "./pages/SignIn";
-import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,14 +22,14 @@ const App = () => (
       <Sonner />
       <AuthProvider>
         <BrowserRouter>
-          <Routes>            <Route path="/" element={<Index />} />
+          <Routes>
+            <Route path="/" element={<Index />} />
             <Route path="/breeding" element={<Breeding />} />
             <Route path="/pet-sitting" element={<PetSitting />} />
             <Route path="/veterinary" element={<Veterinary />} />
             <Route path="/community" element={<Community />} />
             <Route path="/about" element={<About />} />
             <Route path="/signin" element={<SignIn />} />
-            <Route path="/profile" element={<Profile />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -1,0 +1,77 @@
+/* Romantic Color Palette */
+:root {
+  /* Base Colors */
+  --soft-rose: #FBE7E7;
+  --blush-pink: #FFD1DC;
+  --rose: #F4C2C2;
+  --burgundy: #800020;
+  --deep-rose: #C21E56;
+  --mauve: #CC99CC;
+  --soft-white: #FFFCFA;
+  --lavender: #F3EEF8;
+}
+
+/* Important Gradients */
+.gradient-warm {
+  background: linear-gradient(135deg, #F4C2C2 0%, #CC99CC 100%);
+}
+
+.gradient-love {
+  background: linear-gradient(135deg, #FFD1DC 0%, #F4C2C2 100%);
+}
+
+.gradient-deep {
+  background: linear-gradient(135deg, #C21E56 0%, #800020 100%);
+}
+
+.gradient-soft {
+  background: linear-gradient(135deg, #FFFCFA 0%, #F3EEF8 100%);
+}
+
+/* Important Animations */
+@keyframes float-1 {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33% { transform: translateY(-10px) rotate(5deg); }
+  66% { transform: translateY(5px) rotate(-3deg); }
+}
+
+@keyframes float-2 {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-15px) rotate(-5deg); }
+}
+
+@keyframes float-3 {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  25% { transform: translateY(8px) rotate(3deg); }
+  75% { transform: translateY(-12px) rotate(-4deg); }
+}
+
+/* Card styles */
+.romantic-card {
+  border-radius: 0.5rem;
+  border: 1px solid #FFD1DC;
+  background-color: #FFFCFA;
+  padding: 1rem;
+  box-shadow: 0 4px 12px rgba(255, 209, 220, 0.15);
+  transition: all 0.3s;
+}
+
+.romantic-card:hover {
+  box-shadow: 0 8px 24px rgba(255, 209, 220, 0.25);
+  transform: scale(1.02);
+}
+
+/* Button styles */
+.btn-gradient {
+  background: linear-gradient(135deg, #F4C2C2 0%, #CC99CC 100%);
+  color: #800020;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.3s;
+}
+
+.btn-gradient:hover {
+  box-shadow: 0 4px 12px rgba(255, 209, 220, 0.3);
+  transform: scale(1.05);
+}

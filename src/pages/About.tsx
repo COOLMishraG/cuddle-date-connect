@@ -26,11 +26,19 @@ const About = () => {
       description: 'Your pet\'s information and your privacy are protected with industry-standard security.'
     }
   ];
-
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#FBE7E7] relative overflow-hidden">
+      {/* Floating Background Shapes */}
+      <div className="floating-shape absolute top-[12%] left-[10%] text-4xl float-1">💕</div>
+      <div className="floating-shape absolute top-[8%] right-[18%] text-3xl float-2">🐾</div>
+      <div className="floating-shape absolute bottom-[22%] left-[14%] text-5xl float-3">❤️</div>
+      <div className="floating-shape absolute top-[40%] left-[22%] text-2xl float-1" style={{ animationDelay: '2s' }}>🦮</div>
+      <div className="floating-shape absolute bottom-[33%] right-[20%] text-3xl float-2" style={{ animationDelay: '3s' }}>🐈</div>
+      <div className="floating-shape absolute top-[55%] right-[12%] text-4xl float-3" style={{ animationDelay: '1s' }}>💖</div>
+      <div className="floating-shape absolute bottom-[8%] left-[40%] text-2xl float-1" style={{ animationDelay: '4s' }}>🐶</div>
+
       <Header />
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 relative z-10">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold fredoka text-foreground mb-4">About PetMatch</h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">

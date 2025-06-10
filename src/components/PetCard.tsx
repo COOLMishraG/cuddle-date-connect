@@ -34,21 +34,20 @@ const PetCard = ({ pet, onSwipe }: PetCardProps) => {
       setAnimationClass('');
     }, 500);
   };
-
   return (
-    <Card className={`relative w-full max-w-sm mx-auto overflow-hidden subtle-elevation border bg-card ${animationClass}`}>
+    <Card className={`relative w-full max-w-sm mx-auto overflow-hidden romantic-card rounded-xl ${animationClass}`}>
       {/* Pet Image */}
-      <div className="relative h-72 overflow-hidden">
+      <div className="relative h-72 overflow-hidden rounded-t-lg">
         <img
           src={pet.image || "/placeholder.svg"}
           alt={pet.name}
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-burgundy/60 via-transparent to-transparent"></div>
         
         {/* Pet Info Overlay */}
-        <div className="absolute bottom-4 left-4 right-4 text-white">
-          <h3 className="text-2xl font-bold mb-1">{pet.name}</h3>
+        <div className="absolute bottom-4 left-4 right-4 text-soft-white">
+          <h3 className="text-2xl font-bold mb-1 fredoka">{pet.name}</h3>
           <p className="text-sm opacity-90">{pet.breed} • {pet.age} years old</p>
           <div className="flex items-center mt-2 text-sm opacity-80">
             <MapPin className="w-4 h-4 mr-1" />
@@ -58,20 +57,19 @@ const PetCard = ({ pet, onSwipe }: PetCardProps) => {
 
         {/* Vaccination Badge */}
         {pet.vaccinated && (
-          <div className="absolute top-4 right-4 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-medium">
+          <div className="absolute top-4 right-4 bg-rose px-3 py-1 rounded-full text-xs font-medium text-burgundy">
             Vaccinated
           </div>
         )}
       </div>
 
-      {/* Pet Details */}
-      <div className="p-6">
+      {/* Pet Details */}      <div className="p-6">
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center text-sm text-muted-foreground">
+          <div className="flex items-center text-sm text-deep-rose">
             <User className="w-4 h-4 mr-1" />
             <span>Owner: {pet.owner}</span>
           </div>
-          <div className="flex items-center text-sm text-muted-foreground">
+          <div className="flex items-center text-sm text-deep-rose">
             <Calendar className="w-4 h-4 mr-1" />
             <span>{pet.gender}</span>
           </div>
@@ -86,7 +84,7 @@ const PetCard = ({ pet, onSwipe }: PetCardProps) => {
           <Button
             variant="outline"
             size="lg"
-            className="flex-1 border-red-200 text-red-600 hover:bg-red-50"
+            className="flex-1 border-secondary text-burgundy hover:bg-secondary/30"
             onClick={() => handleSwipe('left')}
             disabled={isAnimating}
           >
@@ -95,7 +93,7 @@ const PetCard = ({ pet, onSwipe }: PetCardProps) => {
           </Button>
           <Button
             size="lg"
-            className="flex-1 btn-gradient"
+            className="flex-1 gradient-love text-burgundy"
             onClick={() => handleSwipe('right')}
             disabled={isAnimating}
           >

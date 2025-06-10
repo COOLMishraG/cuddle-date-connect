@@ -28,12 +28,19 @@ const Breeding = () => {
       vaccinated: true,
       gender: 'Male'
     }
-  ];
-
-  return (
-    <div className="min-h-screen bg-background">
+  ];  return (
+    <div className="min-h-screen bg-[#FBE7E7] relative overflow-hidden">
+      {/* Floating Background Shapes */}
+      <div className="floating-shape absolute top-[8%] left-[7%] text-4xl float-1">💕</div>
+      <div className="floating-shape absolute top-[15%] right-[10%] text-3xl float-2">🐾</div>
+      <div className="floating-shape absolute bottom-[18%] left-[12%] text-5xl float-3">❤️</div>
+      <div className="floating-shape absolute top-[30%] left-[25%] text-2xl float-1" style={{ animationDelay: '2s' }}>🐩</div>
+      <div className="floating-shape absolute bottom-[30%] right-[18%] text-3xl float-2" style={{ animationDelay: '3s' }}>🦮</div>
+      <div className="floating-shape absolute top-[45%] right-[7%] text-4xl float-3" style={{ animationDelay: '1s' }}>💖</div>
+      <div className="floating-shape absolute bottom-[7%] left-[35%] text-2xl float-1" style={{ animationDelay: '4s' }}>🐕</div>
+      
       <Header />
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 relative z-10">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold fredoka text-foreground mb-4">Pet Breeding Matches</h1>
           <p className="text-muted-foreground">Find the perfect breeding partner for your pet</p>
@@ -48,12 +55,10 @@ const Breeding = () => {
             <Heart className="w-4 h-4 mr-2" />
             Add My Pet
           </Button>
-        </div>
-
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        </div>        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {pets.map((pet) => (
-            <Card key={pet.id} className="overflow-hidden hover:scale-105 transition-transform cursor-pointer">
-              <div className="h-48 bg-gray-200">
+            <Card key={pet.id} className="romantic-card overflow-hidden hover:scale-105 transition-transform cursor-pointer">
+              <div className="h-48 bg-[#F3EEF8]">
                 <img src={pet.image} alt={pet.name} className="w-full h-full object-cover" />
               </div>
               <CardContent className="p-4">
@@ -64,7 +69,7 @@ const Breeding = () => {
                   {pet.location}
                 </div>
                 <div className="flex justify-between items-center mt-4">
-                  <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                  <span className="text-xs bg-[#F4C2C2] text-burgundy px-2 py-1 rounded">
                     {pet.vaccinated ? 'Vaccinated' : 'Not Vaccinated'}
                   </span>
                   <Button size="sm" className="btn-gradient">
