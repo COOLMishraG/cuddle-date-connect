@@ -3,79 +3,79 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Modern, clean pet platform design system */
+/* Clean, cream-themed pet platform design system */
 
 @layer base {
   :root {
-    --background: 250 250 251;
-    --foreground: 30 41 59;
+    --background: 253 251 247;
+    --foreground: 124 45 83;
 
-    --card: 255 255 255;
-    --card-foreground: 30 41 59;
+    --card: 255 254 252;
+    --card-foreground: 124 45 83;
 
-    --popover: 255 255 255;
-    --popover-foreground: 30 41 59;
+    --popover: 255 254 252;
+    --popover-foreground: 124 45 83;
 
-    --primary: 99 102 241;
-    --primary-foreground: 255 255 255;
+    --primary: 190 18 60;
+    --primary-foreground: 253 251 247;
 
-    --secondary: 241 245 249;
-    --secondary-foreground: 51 65 85;
+    --secondary: 251 246 240;
+    --secondary-foreground: 124 45 83;
 
-    --muted: 248 250 252;
-    --muted-foreground: 100 116 139;
+    --muted: 250 245 238;
+    --muted-foreground: 161 98 108;
 
-    --accent: 34 197 94;
-    --accent-foreground: 255 255 255;
+    --accent: 236 72 153;
+    --accent-foreground: 253 251 247;
 
     --destructive: 239 68 68;
     --destructive-foreground: 255 255 255;
 
-    --border: 226 232 240;
-    --input: 226 232 240;
-    --ring: 99 102 241;
+    --border: 241 224 210;
+    --input: 241 224 210;
+    --ring: 190 18 60;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
 
-    /* Modern pet platform colors */
-    --coral: 251 113 133;
-    --coral-light: 254 205 211;
-    --teal: 6 182 212;
-    --teal-light: 165 243 252;
-    --warm-orange: 249 115 22;
-    --soft-purple: 139 92 246;
-    --mint: 52 211 153;
-    --lavender: 167 139 250;
+    /* Cream-themed colors */
+    --coral: 236 72 153;
+    --coral-light: 252 231 243;
+    --teal: 190 18 60;
+    --teal-light: 252 231 243;
+    --warm-orange: 234 88 12;
+    --soft-purple: 168 85 247;
+    --mint: 236 72 153;
+    --lavender: 236 72 153;
   }
 
   .dark {
-    --background: 15 23 42;
-    --foreground: 248 250 252;
+    --background: 41 37 36;
+    --foreground: 252 231 243;
 
-    --card: 30 41 59;
-    --card-foreground: 248 250 252;
+    --card: 68 64 60;
+    --card-foreground: 252 231 243;
 
-    --popover: 30 41 59;
-    --popover-foreground: 248 250 252;
+    --popover: 68 64 60;
+    --popover-foreground: 252 231 243;
 
-    --primary: 99 102 241;
-    --primary-foreground: 255 255 255;
+    --primary: 236 72 153;
+    --primary-foreground: 41 37 36;
 
-    --secondary: 51 65 85;
-    --secondary-foreground: 203 213 225;
+    --secondary: 87 83 78;
+    --secondary-foreground: 231 229 228;
 
-    --muted: 51 65 85;
-    --muted-foreground: 148 163 184;
+    --muted: 87 83 78;
+    --muted-foreground: 168 162 158;
 
-    --accent: 34 197 94;
-    --accent-foreground: 255 255 255;
+    --accent: 236 72 153;
+    --accent-foreground: 41 37 36;
 
     --destructive: 239 68 68;
     --destructive-foreground: 255 255 255;
 
-    --border: 51 65 85;
-    --input: 51 65 85;
-    --ring: 99 102 241;
+    --border: 87 83 78;
+    --input: 87 83 78;
+    --ring: 236 72 153;
   }
 }
 
@@ -92,83 +92,86 @@
 
 @layer utilities {
   .gradient-coral {
-    background: linear-gradient(135deg, rgb(251 113 133) 0%, rgb(254 205 211) 100%);
+    background: linear-gradient(135deg, rgb(236 72 153) 0%, rgb(252 231 243) 100%);
   }
   
   .gradient-teal {
-    background: linear-gradient(135deg, rgb(6 182 212) 0%, rgb(165 243 252) 100%);
+    background: linear-gradient(135deg, rgb(190 18 60) 0%, rgb(252 231 243) 100%);
   }
   
   .gradient-purple {
-    background: linear-gradient(135deg, rgb(139 92 246) 0%, rgb(167 139 250) 100%);
+    background: linear-gradient(135deg, rgb(168 85 247) 0%, rgb(221 214 254) 100%);
   }
 
   .gradient-mint {
-    background: linear-gradient(135deg, rgb(52 211 153) 0%, rgb(134 239 172) 100%);
+    background: linear-gradient(135deg, rgb(236 72 153) 0%, rgb(252 231 243) 100%);
   }
 
   .gradient-warm {
-    background: linear-gradient(135deg, rgb(249 115 22) 0%, rgb(251 146 60) 100%);
+    background: linear-gradient(135deg, rgb(234 88 12) 0%, rgb(254 215 170) 100%);
   }
 
   .card-hover {
-    @apply transition-all duration-500 hover:shadow-2xl hover:-translate-y-3 hover:scale-[1.02];
+    @apply transition-all duration-300 hover:shadow-lg hover:scale-[1.02];
   }
 
   .btn-gradient {
-    @apply bg-gradient-to-r from-primary to-accent text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 hover:shadow-lg hover:scale-105;
+    @apply bg-gradient-to-r from-primary to-accent text-primary-foreground font-semibold py-3 px-6 rounded-lg transition-all duration-300 hover:shadow-md hover:scale-105;
   }
 
   .glass-effect {
-    @apply bg-white/70 backdrop-blur-md border border-white/20;
+    @apply bg-card/90 backdrop-blur-sm border border-border/50;
+  }
+
+  .subtle-elevation {
+    @apply shadow-sm hover:shadow-md transition-shadow duration-300;
   }
 }
 
-/* Enhanced animations */
-@keyframes float {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  33% { transform: translateY(-8px) rotate(1deg); }
-  66% { transform: translateY(4px) rotate(-1deg); }
+/* Subtle animations */
+@keyframes gentle-float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-4px); }
 }
 
-@keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.3); }
-  50% { box-shadow: 0 0 40px rgba(99, 102, 241, 0.6); }
+@keyframes soft-glow {
+  0%, 100% { box-shadow: 0 2px 8px rgba(190, 18, 60, 0.15); }
+  50% { box-shadow: 0 4px 16px rgba(190, 18, 60, 0.25); }
 }
 
-.float-animation {
-  animation: float 4s ease-in-out infinite;
+.gentle-float {
+  animation: gentle-float 3s ease-in-out infinite;
 }
 
-.pulse-glow {
-  animation: pulse-glow 3s ease-in-out infinite;
+.soft-glow {
+  animation: soft-glow 2s ease-in-out infinite;
 }
 
 /* Swipe animations */
 @keyframes swipe-right {
   0% { transform: translateX(0) rotate(0deg); opacity: 1; }
-  100% { transform: translateX(100vw) rotate(30deg); opacity: 0; }
+  100% { transform: translateX(100vw) rotate(15deg); opacity: 0; }
 }
 
 @keyframes swipe-left {
   0% { transform: translateX(0) rotate(0deg); opacity: 1; }
-  100% { transform: translateX(-100vw) rotate(-30deg); opacity: 0; }
+  100% { transform: translateX(-100vw) rotate(-15deg); opacity: 0; }
 }
 
 .swipe-right {
-  animation: swipe-right 0.6s ease-out forwards;
+  animation: swipe-right 0.5s ease-out forwards;
 }
 
 .swipe-left {
-  animation: swipe-left 0.6s ease-out forwards;
+  animation: swipe-left 0.5s ease-out forwards;
 }
 
 /* Card reveal animation */
-@keyframes card-reveal {
-  0% { transform: translateY(50px); opacity: 0; }
+@keyframes fade-up {
+  0% { transform: translateY(20px); opacity: 0; }
   100% { transform: translateY(0); opacity: 1; }
 }
 
-.card-reveal {
-  animation: card-reveal 0.6s ease-out forwards;
+.fade-up {
+  animation: fade-up 0.5s ease-out forwards;
 }

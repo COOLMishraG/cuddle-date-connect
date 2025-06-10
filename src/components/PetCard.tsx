@@ -32,19 +32,19 @@ const PetCard = ({ pet, onSwipe }: PetCardProps) => {
       onSwipe?.(direction, pet.id);
       setIsAnimating(false);
       setAnimationClass('');
-    }, 600);
+    }, 500);
   };
 
   return (
-    <Card className={`relative w-full max-w-sm mx-auto overflow-hidden shadow-lg card-hover ${animationClass}`}>
+    <Card className={`relative w-full max-w-sm mx-auto overflow-hidden subtle-elevation border bg-card ${animationClass}`}>
       {/* Pet Image */}
-      <div className="relative h-80 overflow-hidden">
+      <div className="relative h-72 overflow-hidden">
         <img
           src={pet.image || "/placeholder.svg"}
           alt={pet.name}
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
         
         {/* Pet Info Overlay */}
         <div className="absolute bottom-4 left-4 right-4 text-white">
@@ -95,7 +95,7 @@ const PetCard = ({ pet, onSwipe }: PetCardProps) => {
           </Button>
           <Button
             size="lg"
-            className="flex-1 bg-gradient-to-r from-primary to-accent hover:shadow-lg"
+            className="flex-1 btn-gradient"
             onClick={() => handleSwipe('right')}
             disabled={isAnimating}
           >

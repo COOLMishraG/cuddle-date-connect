@@ -69,7 +69,7 @@ const MatchingSection = () => {
 
   if (pets.length === 0) {
     return (
-      <section id="breeding" className="py-20 bg-gradient-to-b from-background to-muted/30">
+      <section id="breeding" className="py-20 bg-background">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold mb-8">No more pets to show</h2>
           <Button onClick={resetStack} className="btn-gradient">
@@ -81,7 +81,7 @@ const MatchingSection = () => {
   }
 
   return (
-    <section id="breeding" className="py-20 bg-gradient-to-b from-background to-muted/30">
+    <section id="breeding" className="py-20 bg-background">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
@@ -93,16 +93,16 @@ const MatchingSection = () => {
         </div>
 
         <div className="max-w-md mx-auto relative">
-          {/* Enhanced Pet Card Stack with better depth */}
+          {/* Pet Card Stack with subtle depth */}
           <div className="relative h-[600px]">
             {pets.slice(currentPetIndex, currentPetIndex + 3).map((pet, index) => (
               <div
                 key={pet.id}
                 className={`absolute inset-0 transition-all duration-300 ${
-                  index === 0 ? 'z-30' : index === 1 ? 'z-20 scale-95 opacity-80' : 'z-10 scale-90 opacity-60'
+                  index === 0 ? 'z-30' : index === 1 ? 'z-20 scale-98 opacity-80' : 'z-10 scale-96 opacity-60'
                 }`}
                 style={{
-                  transform: index > 0 ? `translateY(${index * 12}px) translateX(${index * 4}px) scale(${1 - index * 0.05})` : 'none'
+                  transform: index > 0 ? `translateY(${index * 8}px) translateX(${index * 2}px) scale(${1 - index * 0.02})` : 'none'
                 }}
               >
                 {index === 0 && (
@@ -113,16 +113,16 @@ const MatchingSection = () => {
                 )}
                 {index > 0 && (
                   <div className="w-full max-w-sm mx-auto">
-                    <div className="bg-white rounded-2xl shadow-xl h-[500px] border border-gray-100"></div>
+                    <div className="bg-card rounded-lg subtle-elevation h-[500px] border border-border"></div>
                   </div>
                 )}
               </div>
             ))}
           </div>
 
-          {/* Enhanced Counter */}
+          {/* Counter */}
           <div className="text-center mt-8">
-            <div className="inline-flex items-center bg-white/80 backdrop-blur-sm rounded-full px-6 py-3 shadow-lg">
+            <div className="inline-flex items-center bg-card rounded-lg px-6 py-3 subtle-elevation border border-border">
               <span className="text-sm font-medium text-muted-foreground">
                 {currentPetIndex + 1} of {pets.length} pets
               </span>
@@ -130,9 +130,9 @@ const MatchingSection = () => {
           </div>
         </div>
 
-        {/* Enhanced Instructions */}
+        {/* Instructions */}
         <div className="text-center mt-12">
-          <div className="inline-flex items-center space-x-8 bg-white/70 backdrop-blur-sm rounded-2xl px-8 py-4 shadow-lg">
+          <div className="inline-flex items-center space-x-8 bg-card rounded-lg px-8 py-4 subtle-elevation border border-border">
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
                 <span className="text-red-600 text-sm">←</span>
