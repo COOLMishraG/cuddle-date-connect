@@ -13,6 +13,7 @@ import About from "./pages/About";
 import SignIn from "./pages/SignIn";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -22,15 +23,15 @@ const App = () => (
       <Toaster />
       <Sonner />
       <AuthProvider>
-        <BrowserRouter>
-          <Routes>            <Route path="/" element={<Index />} />
-            <Route path="/breeding" element={<Breeding />} />
-            <Route path="/pet-sitting" element={<PetSitting />} />
-            <Route path="/veterinary" element={<Veterinary />} />
-            <Route path="/community" element={<Community />} />
+        <BrowserRouter>          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/breeding" element={<ProtectedRoute><Breeding /></ProtectedRoute>} />
+            <Route path="/pet-sitting" element={<ProtectedRoute><PetSitting /></ProtectedRoute>} />
+            <Route path="/veterinary" element={<ProtectedRoute><Veterinary /></ProtectedRoute>} />
+            <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
             <Route path="/about" element={<About />} />
             <Route path="/signin" element={<SignIn />} />
-            <Route path="/profile" element={<Profile />} />
+            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

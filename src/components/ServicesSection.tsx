@@ -3,9 +3,11 @@ import { Heart, Users, Calendar, MessageSquare } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 const ServicesSection = () => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
   const services = [
     {
@@ -64,7 +66,13 @@ const ServicesSection = () => {
               key={index} 
               className="relative overflow-hidden subtle-elevation border bg-card fade-up cursor-pointer hover:scale-105 transition-transform"
               style={{ animationDelay: service.delay }}
-              onClick={() => navigate(service.path)}
+              onClick={() => {
+                if (isAuthenticated) {
+                  navigate(service.path);
+                } else {
+                  navigate('/signin', { state: { redirectTo: service.path } });
+                }
+              }}
             >
               {/* Simple top accent */}
               <div className={`h-1 ${service.gradient}`}></div>
@@ -86,9 +94,17 @@ const ServicesSection = () => {
                       <span className="font-medium text-foreground">{feature}</span>
                     </li>
                   ))}
-                </ul>
-
-                <Button className="w-full btn-gradient py-2 rounded-lg text-sm">
+                </ul>                <Button 
+                  className="w-full btn-gradient py-2 rounded-lg text-sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (isAuthenticated) {
+                      navigate(service.path);
+                    } else {
+                      navigate('/signin', { state: { redirectTo: service.path } });
+                    }
+                  }}
+                >
                   Get Started
                 </Button>
               </CardContent>
