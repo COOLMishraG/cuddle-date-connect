@@ -69,7 +69,7 @@ const MatchingSection = () => {
 
   if (pets.length === 0) {
     return (
-      <section id="breeding" className="py-16 bg-background">
+      <section id="breeding" className="py-20 bg-gradient-to-b from-background to-muted/30">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold mb-8">No more pets to show</h2>
           <Button onClick={resetStack} className="btn-gradient">
@@ -81,28 +81,28 @@ const MatchingSection = () => {
   }
 
   return (
-    <section id="breeding" className="py-16 bg-background">
+    <section id="breeding" className="py-20 bg-gradient-to-b from-background to-muted/30">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
             Find Your Pet's Perfect Match
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Swipe through potential breeding partners for your pet. Match with compatible pets and connect with their owners.
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+            Swipe through potential breeding partners for your pet. Match with compatible pets and connect with their owners to start meaningful conversations.
           </p>
         </div>
 
         <div className="max-w-md mx-auto relative">
-          {/* Pet Card Stack */}
-          <div className="relative">
+          {/* Enhanced Pet Card Stack with better depth */}
+          <div className="relative h-[600px]">
             {pets.slice(currentPetIndex, currentPetIndex + 3).map((pet, index) => (
               <div
                 key={pet.id}
                 className={`absolute inset-0 transition-all duration-300 ${
-                  index === 0 ? 'z-30' : index === 1 ? 'z-20 scale-95 opacity-70' : 'z-10 scale-90 opacity-40'
+                  index === 0 ? 'z-30' : index === 1 ? 'z-20 scale-95 opacity-80' : 'z-10 scale-90 opacity-60'
                 }`}
                 style={{
-                  transform: index > 0 ? `translateY(${index * 8}px) scale(${1 - index * 0.05})` : 'none'
+                  transform: index > 0 ? `translateY(${index * 12}px) translateX(${index * 4}px) scale(${1 - index * 0.05})` : 'none'
                 }}
               >
                 {index === 0 && (
@@ -113,26 +113,40 @@ const MatchingSection = () => {
                 )}
                 {index > 0 && (
                   <div className="w-full max-w-sm mx-auto">
-                    <div className="bg-white rounded-lg shadow-lg h-96"></div>
+                    <div className="bg-white rounded-2xl shadow-xl h-[500px] border border-gray-100"></div>
                   </div>
                 )}
               </div>
             ))}
           </div>
 
-          {/* Counter */}
+          {/* Enhanced Counter */}
           <div className="text-center mt-8">
-            <p className="text-sm text-muted-foreground">
-              {currentPetIndex + 1} of {pets.length} pets
-            </p>
+            <div className="inline-flex items-center bg-white/80 backdrop-blur-sm rounded-full px-6 py-3 shadow-lg">
+              <span className="text-sm font-medium text-muted-foreground">
+                {currentPetIndex + 1} of {pets.length} pets
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* Instructions */}
-        <div className="text-center mt-8">
-          <p className="text-sm text-muted-foreground">
-            Swipe left to pass • Swipe right to match
-          </p>
+        {/* Enhanced Instructions */}
+        <div className="text-center mt-12">
+          <div className="inline-flex items-center space-x-8 bg-white/70 backdrop-blur-sm rounded-2xl px-8 py-4 shadow-lg">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                <span className="text-red-600 text-sm">←</span>
+              </div>
+              <span className="text-sm font-medium text-muted-foreground">Pass</span>
+            </div>
+            <div className="w-px h-6 bg-border"></div>
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                <span className="text-green-600 text-sm">→</span>
+              </div>
+              <span className="text-sm font-medium text-muted-foreground">Match</span>
+            </div>
+          </div>
         </div>
       </div>
     </section>
