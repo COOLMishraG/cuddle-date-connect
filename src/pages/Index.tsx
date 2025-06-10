@@ -6,7 +6,7 @@ import ServicesSection from '@/components/ServicesSection';
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#FBE7E7]"> {/* Direct color override */}
       <Header />
       <HeroSection />
       <MatchingSection />

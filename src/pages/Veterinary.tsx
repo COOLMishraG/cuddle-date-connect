@@ -29,11 +29,19 @@ const Veterinary = () => {
       available: false
     }
   ];
-
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#FBE7E7] relative overflow-hidden">
+      {/* Floating Background Shapes */}
+      <div className="floating-shape absolute top-[5%] left-[5%] text-4xl float-1">💕</div>
+      <div className="floating-shape absolute top-[10%] right-[8%] text-3xl float-2">🐾</div>
+      <div className="floating-shape absolute bottom-[20%] left-[7%] text-5xl float-3">❤️</div>
+      <div className="floating-shape absolute top-[25%] left-[33%] text-2xl float-1" style={{ animationDelay: '2s' }}>🏠</div>
+      <div className="floating-shape absolute bottom-[25%] right-[25%] text-3xl float-2" style={{ animationDelay: '3s' }}>🩺</div>
+      <div className="floating-shape absolute top-[40%] right-[5%] text-4xl float-3" style={{ animationDelay: '1s' }}>💖</div>
+      <div className="floating-shape absolute bottom-[10%] left-[50%] text-2xl float-1" style={{ animationDelay: '4s' }}>🐈</div>
+
       <Header />
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 relative z-10">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold fredoka text-foreground mb-4">Veterinary Services</h1>
           <p className="text-muted-foreground">Connect with certified veterinarians in your area</p>

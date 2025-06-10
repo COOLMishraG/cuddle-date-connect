@@ -1,11 +1,8 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Heart, User, Search, Menu, X, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-
-// This is a simplified header without authentication that will work for all pages
-// Once you have the authentication context properly set up, you can replace this with the full version
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -13,7 +10,7 @@ const Header = () => {
   const [capsuleStyle, setCapsuleStyle] = useState({ width: 0, left: 0 });
   const navRef = useRef<HTMLElement>(null);
   const navigate = useNavigate();
-  const { isAuthenticated, currentUser, signOut } = useAuth();
+  const { currentUser, isAuthenticated, signOut } = useAuth();
 
   const navItems = [
     { id: 'breeding', label: 'Breeding', path: '/breeding', description: 'Find perfect breeding partners for your pets' },
@@ -44,6 +41,11 @@ const Header = () => {
   const handleNavClick = (path: string) => {
     navigate(path);
     setIsMenuOpen(false);
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
   };
 
   return (
@@ -87,7 +89,9 @@ const Header = () => {
                 </div>
               </div>
             ))}
-          </nav>          {/* Desktop Actions */}
+          </nav>
+
+          {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
             <Button variant="ghost" size="sm">
               <Search className="w-4 h-4 mr-2" />
@@ -95,29 +99,19 @@ const Header = () => {
             </Button>
             
             {isAuthenticated ? (
-              <div className="flex items-center space-x-2">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => navigate('/profile')}
-                  className="border-burgundy text-burgundy hover:bg-burgundy hover:text-white"
-                >
+              <>
+                <Button variant="ghost" size="sm" onClick={() => navigate('/profile')}>
                   <User className="w-4 h-4 mr-2" />
                   Profile
                 </Button>
                 <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => {
-                    signOut();
-                    navigate('/signin');
-                  }}
-                  className="text-gray-600 hover:text-burgundy"
+                  className="btn-gradient"
+                  onClick={handleSignOut}
                 >
                   <LogOut className="w-4 h-4 mr-2" />
                   Sign Out
                 </Button>
-              </div>
+              </>
             ) : (
               <Button 
                 className="btn-gradient"
@@ -153,7 +147,8 @@ const Header = () => {
                 >
                   {item.label}
                 </button>
-              ))}              <div className="h-px bg-border my-2"></div>
+              ))}
+              <div className="h-px bg-border my-2"></div>
               <button
                 className="text-left text-foreground hover:text-primary p-2 flex items-center"
                 onClick={() => navigate('/search')}
@@ -169,14 +164,11 @@ const Header = () => {
                     onClick={() => navigate('/profile')}
                   >
                     <User className="w-4 h-4 mr-2" />
-                    My Profile
+                    Profile
                   </button>
                   <button
                     className="text-left text-foreground hover:text-primary p-2 flex items-center"
-                    onClick={() => {
-                      signOut();
-                      navigate('/signin');
-                    }}
+                    onClick={handleSignOut}
                   >
                     <LogOut className="w-4 h-4 mr-2" />
                     Sign Out
