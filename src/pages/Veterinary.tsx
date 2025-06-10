@@ -1,10 +1,16 @@
 
+import { useState } from 'react';
 import Header from '@/components/Header';
 import { Calendar, MapPin, Star, Shield } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import ScheduleVet from '@/components/ScheduleVet';
 
 const Veterinary = () => {
+  const [showScheduleForm, setShowScheduleForm] = useState(false);
+  const [isEmergency, setIsEmergency] = useState(false);
+  const [selectedVet, setSelectedVet] = useState<{ id: string; name: string } | null>(null);
+  
   const vets = [
     {
       id: '1',
@@ -45,14 +51,27 @@ const Veterinary = () => {
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold fredoka text-foreground mb-4">Veterinary Services</h1>
           <p className="text-muted-foreground">Connect with certified veterinarians in your area</p>
-        </div>
-
-        <div className="flex justify-between items-center mb-6">
-          <Button variant="outline" className="flex items-center gap-2">
+        </div>        <div className="flex justify-between items-center mb-6">
+          <Button 
+            variant="outline" 
+            className="flex items-center gap-2"
+            onClick={() => {
+              setIsEmergency(false);
+              setSelectedVet(null);
+              setShowScheduleForm(true);
+            }}
+          >
             <Calendar className="w-4 h-4" />
             Book Appointment
           </Button>
-          <Button className="btn-gradient">
+          <Button 
+            className="btn-gradient"
+            onClick={() => {
+              setIsEmergency(true);
+              setSelectedVet(null);
+              setShowScheduleForm(true);
+            }}
+          >
             Emergency Services
           </Button>
         </div>
@@ -80,11 +99,22 @@ const Veterinary = () => {
                   <Star className="w-4 h-4 text-yellow-500 mr-1" />
                   <span className="text-sm">{vet.rating}</span>
                 </div>
-                <div className="flex justify-between items-center mt-4">
-                  <span className={`text-xs px-2 py-1 rounded ${vet.available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                <div className="flex justify-between items-center mt-4">                  <span className={`text-xs px-2 py-1 rounded ${vet.available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                     {vet.available ? 'Available' : 'Busy'}
                   </span>
-                  <Button size="sm" className="btn-gradient" disabled={!vet.available}>
+                  <Button 
+                    size="sm" 
+                    className="btn-gradient" 
+                    disabled={!vet.available}
+                    onClick={() => {
+                      setSelectedVet({
+                        id: vet.id,
+                        name: vet.name
+                      });
+                      setIsEmergency(false);
+                      setShowScheduleForm(true);
+                    }}
+                  >
                     Schedule
                   </Button>
                 </div>
@@ -93,6 +123,18 @@ const Veterinary = () => {
           ))}
         </div>
       </div>
+      
+      {/* Schedule Appointment Dialog */}
+      <ScheduleVet
+        open={showScheduleForm}
+        onClose={() => {
+          setShowScheduleForm(false);
+          setIsEmergency(false);
+        }}
+        vetId={selectedVet?.id}
+        vetName={selectedVet?.name}
+        isEmergency={isEmergency}
+      />
     </div>
   );
 };

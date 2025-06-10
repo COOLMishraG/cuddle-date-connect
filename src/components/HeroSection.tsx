@@ -2,9 +2,11 @@
 import { Heart, Users, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 const HeroSection = () => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   return (    <section className="relative min-h-[80vh] flex items-center justify-center bg-[#FBE7E7] overflow-hidden">
       {/* Floating Background Shapes - Using relative positioning with percentage-based values */}
       <div className="floating-shape absolute top-[5%] left-[5%] text-4xl float-1">💕</div>
@@ -27,14 +29,24 @@ const HeroSection = () => {
             <p className="text-base sm:text-lg md:text-xl font-medium text-accent fredoka">
               "PetMatch" - Got everything you need for your pet! 🐾
             </p>
-          </div>
-
-          <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 md:mb-8 max-w-3xl mx-auto leading-relaxed">
+          </div>          <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 md:mb-8 max-w-3xl mx-auto leading-relaxed">
             Connect with pet owners for breeding, find trusted pet sitters, and access veterinary services - all in one platform designed for pet lovers.
-          </p>          <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center mb-8 md:mb-12">
+          </p>
+          {!isAuthenticated && (
+            <p className="text-deep-rose italic mb-4 max-w-3xl mx-auto">
+              Sign in to access all PetMatch features
+            </p>
+          )}
+          <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center mb-8 md:mb-12">
             <Button 
               className="btn-gradient text-base md:text-lg px-6 md:px-8 py-3 md:py-4 rounded-lg"
-              onClick={() => navigate('/breeding')}
+              onClick={() => {
+                if (isAuthenticated) {
+                  navigate('/breeding');
+                } else {
+                  navigate('/signin', { state: { redirectTo: '/breeding' } });
+                }
+              }}
             >
               Start Matching
             </Button>
@@ -45,13 +57,17 @@ const HeroSection = () => {
             >
               Learn More
             </Button>
-          </div>
-
-          {/* Feature Pills - Smaller and closer */}
+          </div>          {/* Feature Pills - Smaller and closer */}
           <div className="flex flex-wrap justify-center gap-3">
             <div 
               className="flex items-center bg-card rounded-lg px-4 py-2 subtle-elevation border border-border cursor-pointer hover:scale-105 transition-transform"
-              onClick={() => navigate('/breeding')}
+              onClick={() => {
+                if (isAuthenticated) {
+                  navigate('/breeding');
+                } else {
+                  navigate('/signin', { state: { redirectTo: '/breeding' } });
+                }
+              }}
             >
               <div className="w-6 h-6 gradient-warm rounded-lg flex items-center justify-center mr-2">
                 <Heart className="w-3 h-3 text-white" />
@@ -60,7 +76,13 @@ const HeroSection = () => {
             </div>
             <div 
               className="flex items-center bg-card rounded-lg px-4 py-2 subtle-elevation border border-border cursor-pointer hover:scale-105 transition-transform"
-              onClick={() => navigate('/pet-sitting')}
+              onClick={() => {
+                if (isAuthenticated) {
+                  navigate('/pet-sitting');
+                } else {
+                  navigate('/signin', { state: { redirectTo: '/pet-sitting' } });
+                }
+              }}
             >
               <div className="w-6 h-6 gradient-love rounded-lg flex items-center justify-center mr-2">
                 <Users className="w-3 h-3 text-foreground" />
@@ -69,7 +91,13 @@ const HeroSection = () => {
             </div>
             <div 
               className="flex items-center bg-card rounded-lg px-4 py-2 subtle-elevation border border-border cursor-pointer hover:scale-105 transition-transform"
-              onClick={() => navigate('/veterinary')}
+              onClick={() => {
+                if (isAuthenticated) {
+                  navigate('/veterinary');
+                } else {
+                  navigate('/signin', { state: { redirectTo: '/veterinary' } });
+                }
+              }}
             >
               <div className="w-6 h-6 gradient-warm rounded-lg flex items-center justify-center mr-2">
                 <Calendar className="w-3 h-3 text-white" />

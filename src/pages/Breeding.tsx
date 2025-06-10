@@ -1,10 +1,17 @@
 
+import { useState } from 'react';
 import Header from '@/components/Header';
 import { Heart, Filter, MapPin } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import useAuthGuard from '@/hooks/useAuthGuard';
+import AddPetForm from '@/components/AddPetForm';
 
 const Breeding = () => {
+  // Auth guard will redirect if not authenticated
+  const { isLoading } = useAuthGuard();
+  const [showAddPetForm, setShowAddPetForm] = useState(false);
+  
   const pets = [
     {
       id: '1',
@@ -50,12 +57,16 @@ const Breeding = () => {
           <Button variant="outline" className="flex items-center gap-2">
             <Filter className="w-4 h-4" />
             Filters
-          </Button>
-          <Button className="btn-gradient">
+          </Button>          <Button 
+            className="btn-gradient"
+            onClick={() => setShowAddPetForm(true)}
+          >
             <Heart className="w-4 h-4 mr-2" />
             Add My Pet
           </Button>
-        </div>        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        </div>
+        
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {pets.map((pet) => (
             <Card key={pet.id} className="romantic-card overflow-hidden hover:scale-105 transition-transform cursor-pointer">
               <div className="h-48 bg-[#F3EEF8]">
@@ -79,8 +90,18 @@ const Breeding = () => {
               </CardContent>
             </Card>
           ))}
-        </div>
-      </div>
+        </div>      </div>
+      
+      {/* Add Pet Form Dialog */}
+      <AddPetForm 
+        open={showAddPetForm} 
+        onClose={() => setShowAddPetForm(false)} 
+        onPetAdded={(pet) => {
+          // Here you would normally add the pet to the database
+          // and update the local state
+          setShowAddPetForm(false);
+        }} 
+      />
     </div>
   );
 };

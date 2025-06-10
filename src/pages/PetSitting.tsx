@@ -1,10 +1,15 @@
 
+import { useState } from 'react';
 import Header from '@/components/Header';
 import { Users, Star, Calendar, MapPin } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import BookSitting from '@/components/BookSitting';
 
 const PetSitting = () => {
+  const [showBookForm, setShowBookForm] = useState(false);
+  const [selectedSitter, setSelectedSitter] = useState<{ id: string; name: string } | null>(null);
+  
   const sitters = [
     {
       id: '1',
@@ -72,11 +77,21 @@ const PetSitting = () => {
                   <span className="text-sm">{sitter.rating}</span>
                   <span className="ml-auto font-semibold text-accent">{sitter.price}</span>
                 </div>
-                <div className="flex justify-between items-center mt-4">
-                  <span className={`text-xs px-2 py-1 rounded ${sitter.available ? 'bg-[#F4C2C2] text-burgundy' : 'bg-[#FFD1DC] text-[#C21E56]'}`}>
+                <div className="flex justify-between items-center mt-4">                  <span className={`text-xs px-2 py-1 rounded ${sitter.available ? 'bg-[#F4C2C2] text-burgundy' : 'bg-[#FFD1DC] text-[#C21E56]'}`}>
                     {sitter.available ? 'Available' : 'Busy'}
                   </span>
-                  <Button size="sm" className="btn-gradient" disabled={!sitter.available}>
+                  <Button 
+                    size="sm" 
+                    className="btn-gradient" 
+                    disabled={!sitter.available}
+                    onClick={() => {
+                      setSelectedSitter({
+                        id: sitter.id,
+                        name: sitter.name
+                      });
+                      setShowBookForm(true);
+                    }}
+                  >
                     Book Now
                   </Button>
                 </div>
@@ -85,6 +100,17 @@ const PetSitting = () => {
           ))}
         </div>
       </div>
+      
+      {/* Booking Dialog */}
+      <BookSitting
+        open={showBookForm}
+        onClose={() => {
+          setShowBookForm(false);
+          setSelectedSitter(null);
+        }}
+        sitterId={selectedSitter?.id}
+        sitterName={selectedSitter?.name}
+      />
     </div>
   );
 };

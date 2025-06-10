@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Heart, User, MapPin, Phone, Mail, Calendar, Plus, Edit2, Camera, Save, Trash2 } from 'lucide-react';
 import Header from '@/components/Header';
+import useAuthGuard from '@/hooks/useAuthGuard';
+import ServiceHistory from '@/components/ServiceHistory';
+import AddPetForm from '@/components/AddPetForm';
 
 // Mock data - in real app, this would come from API/backend
 const mockPets = [
@@ -48,11 +51,14 @@ type Pet = {
 
 const Profile = () => {
   const navigate = useNavigate();
-  const { currentUser, isAuthenticated, isLoading, signOut } = useAuth();
+  const { currentUser, signOut } = useAuth();
+  const { isLoading } = useAuthGuard();
   
   const [activeTab, setActiveTab] = useState('personal');
   const [pets, setPets] = useState<Pet[]>(mockPets);
   const [isEditing, setIsEditing] = useState(false);
+  const [showAddPetForm, setShowAddPetForm] = useState(false);
+  const [editingPet, setEditingPet] = useState<Pet | null>(null);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -71,13 +77,6 @@ const Profile = () => {
     license: '',
     availability: ''
   });
-
-  // Redirect if not authenticated
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      navigate('/signin');
-    }
-  }, [isAuthenticated, isLoading, navigate]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -99,6 +98,23 @@ const Profile = () => {
   const handleSignOut = async () => {
     await signOut();
     navigate('/signin');
+  };
+  
+  const handleAddPet = (pet: Pet) => {
+    if (editingPet) {
+      // Update existing pet
+      setPets(pets.map(p => p.id === pet.id ? pet : p));
+      setEditingPet(null);
+    } else {
+      // Add new pet
+      setPets([...pets, pet]);
+    }
+    setShowAddPetForm(false);
+  };
+  
+  const handleEditPet = (pet: Pet) => {
+    setEditingPet(pet);
+    setShowAddPetForm(true);
   };
 
   // Loading state
@@ -193,7 +209,7 @@ const Profile = () => {
                 onValueChange={setActiveTab}
                 className="w-full"
               >
-                <TabsList className="grid grid-cols-3 mb-6">
+                <TabsList className="grid grid-cols-4 mb-6">
                   <TabsTrigger value="personal" className="data-[state=active]:bg-burgundy data-[state=active]:text-white">
                     Personal Info
                   </TabsTrigger>
@@ -215,6 +231,10 @@ const Profile = () => {
                       Practice
                     </TabsTrigger>
                   )}
+                  
+                  <TabsTrigger value="history" className="data-[state=active]:bg-burgundy data-[state=active]:text-white">
+                    History
+                  </TabsTrigger>
                   
                   <TabsTrigger value="settings" className="data-[state=active]:bg-burgundy data-[state=active]:text-white">
                     Settings
@@ -313,7 +333,10 @@ const Profile = () => {
                     <h2 className="text-xl font-bold text-burgundy">My Pets</h2>
                     <Button 
                       size="sm"
-                      onClick={() => {/* Add new pet logic here */}}
+                      onClick={() => {
+                        setEditingPet(null);
+                        setShowAddPetForm(true);
+                      }}
                       className="bg-burgundy hover:bg-deep-rose text-white"
                     >
                       <Plus size={16} className="mr-2" />
@@ -330,7 +353,10 @@ const Profile = () => {
                             alt={pet.name} 
                             className="w-full h-full object-cover"
                           />
-                          <button className="absolute top-2 right-2 bg-burgundy/80 hover:bg-burgundy text-white p-1.5 rounded-full">
+                          <button 
+                            className="absolute top-2 right-2 bg-burgundy/80 hover:bg-burgundy text-white p-1.5 rounded-full"
+                            onClick={() => handleEditPet(pet)}
+                          >
                             <Edit2 size={14} />
                           </button>
                         </div>
@@ -349,6 +375,7 @@ const Profile = () => {
                               variant="outline" 
                               size="sm" 
                               className="text-xs border-burgundy text-burgundy hover:bg-burgundy hover:text-white"
+                              onClick={() => handleEditPet(pet)}
                             >
                               Edit Profile
                             </Button>
@@ -356,6 +383,7 @@ const Profile = () => {
                               variant="outline" 
                               size="sm" 
                               className="text-xs border-rose text-rose hover:bg-rose hover:text-white"
+                              onClick={() => navigate('/breeding')}
                             >
                               Find Matches
                             </Button>
@@ -501,6 +529,11 @@ const Profile = () => {
                   )}
                 </TabsContent>
                 
+                {/* History Tab (Service History) */}
+                <TabsContent value="history" className="space-y-4">
+                  <ServiceHistory />
+                </TabsContent>
+                
                 {/* Settings Tab */}
                 <TabsContent value="settings" className="space-y-4">
                   <h2 className="text-xl font-bold text-burgundy">Account Settings</h2>
@@ -598,6 +631,14 @@ const Profile = () => {
           </div>
         </div>
       </div>
+      
+      {/* Add/Edit Pet Form Dialog */}
+      <AddPetForm 
+        open={showAddPetForm} 
+        onClose={() => setShowAddPetForm(false)} 
+        onPetAdded={handleAddPet} 
+        existingPet={editingPet}
+      />
     </div>
   );
 };
