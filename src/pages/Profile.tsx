@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -7,58 +7,28 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Heart, User, MapPin, Phone, Mail, Calendar, Plus, Edit2, Camera, Save, Trash2 } from 'lucide-react';
+import { Heart, User, MapPin, Phone, Mail, Calendar, Plus, Edit2, Camera, Save, Trash2, Loader2 } from 'lucide-react';
 import Header from '@/components/Header';
 import useAuthGuard from '@/hooks/useAuthGuard';
 import ServiceHistory from '@/components/ServiceHistory';
 import AddPetForm from '@/components/AddPetForm';
+import { toast } from '@/hooks/use-toast';
+import { userApi, petApi } from '@/services/api';
+import { Pet } from '@/types/pet';
+import { UserRole } from '@/types/user';
 
-// Mock data - in real app, this would come from API/backend
-const mockPets = [
-  {
-    id: 'pet1',
-    name: 'Bella',
-    breed: 'Golden Retriever',
-    age: 3,
-    gender: 'Female',
-    vaccinated: true,
-    image: '/placeholder.svg',
-    description: 'Friendly and loves to play fetch. Looking for playmates!'
-  },
-  {
-    id: 'pet2',
-    name: 'Max',
-    breed: 'Corgi',
-    age: 2,
-    gender: 'Male',
-    vaccinated: true,
-    image: '/placeholder.svg',
-    description: 'Energetic and sociable. Loves meeting new dogs at the park.'
-  }
-];
-
-// Type for pet data
-type Pet = {
-  id: string;
-  name: string;
-  breed: string;
-  age: number;
-  gender: string;
-  vaccinated: boolean;
-  image: string;
-  description: string;
-};
-
-const Profile = () => {
+const Profile = () => {  
   const navigate = useNavigate();
   const { currentUser, signOut } = useAuth();
-  const { isLoading } = useAuthGuard();
-  
+  const { isLoading: authLoading } = useAuthGuard();
   const [activeTab, setActiveTab] = useState('personal');
-  const [pets, setPets] = useState<Pet[]>(mockPets);
+  const [pets, setPets] = useState<Pet[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [showAddPetForm, setShowAddPetForm] = useState(false);
   const [editingPet, setEditingPet] = useState<Pet | null>(null);
+  const [profileImage, setProfileImage] = useState(currentUser?.profileImage || '/placeholder.svg');
+  const [isUploading, setIsUploading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -85,40 +55,253 @@ const Profile = () => {
 
   const handleSelectChange = (name: string, value: string) => {
     setFormData(prev => ({ ...prev, [name]: value }));
+  };  const handleSaveProfile = async () => {
+    try {
+      if (!currentUser?.id) {
+        throw new Error('User not authenticated');
+      }
+      
+      const userData = {
+        ...formData,
+        // Convert role to uppercase to match backend enum
+        role: formData.role.toUpperCase(),
+        // If profileImage is a base64 string, we'll let the dedicated upload function handle it
+      };
+      
+      // Update user in the backend
+      await userApi.updateUser(currentUser.id, userData);
+      
+      setIsEditing(false);
+      
+      toast({
+        title: "Profile updated",
+        description: "Your profile has been updated successfully.",
+      });
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "There was an error saving your profile.",
+        variant: "destructive"
+      });
+    }
   };
-
-  const handleSaveProfile = () => {
-    // In a real app, this would call an API to save profile data
-    console.log('Saving profile data:', formData);
-    setIsEditing(false);
-    // Mock success message
-    alert('Profile updated successfully!');
-  };
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSignOut = async () => {
     await signOut();
     navigate('/signin');
   };
-  
-  const handleAddPet = (pet: Pet) => {
-    if (editingPet) {
-      // Update existing pet
-      setPets(pets.map(p => p.id === pet.id ? pet : p));
-      setEditingPet(null);
-    } else {
-      // Add new pet
-      setPets([...pets, pet]);
+    const handleProfilePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    // File validation
+    const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
+    if (!validTypes.includes(file.type)) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload a JPG, PNG or GIF image.",
+        variant: "destructive"
+      });
+      return;
     }
-    setShowAddPetForm(false);
+
+    // File size validation (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please upload an image smaller than 5MB.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setIsUploading(true);
+    
+    try {
+      if (!currentUser?.id) {
+        throw new Error('User not authenticated');
+      }
+
+      // First, show a preview of the image immediately
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (e.target?.result) {
+          setProfileImage(e.target.result.toString());
+        }
+      };
+      reader.readAsDataURL(file);
+      
+      // Then upload to backend
+      const result = await userApi.uploadProfilePhoto(currentUser.id, file);
+      
+      // Update the profile image with the URL from the server
+      if (result.profileImage) {
+        setProfileImage(result.profileImage);
+      }
+      
+      toast({
+        title: "Profile photo updated",
+        description: "Your profile photo has been updated successfully.",
+      });
+    } catch (error) {
+      console.error('Error uploading profile photo:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "There was an error uploading your photo.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
+    const handleAddPet = async (pet: Pet) => {
+    try {
+      if (!currentUser?.id) {
+        throw new Error('User not authenticated');
+      }
+      
+      let result;
+      
+      if (editingPet) {
+        // Update existing pet in the backend
+        result = await petApi.updatePet(pet.id, {
+          ...pet,
+          userId: currentUser.id
+        });
+        
+        // Update the local state
+        setPets(pets.map(p => p.id === pet.id ? result : p));
+        setEditingPet(null);
+      } else {
+        // Add new pet to the backend
+        result = await petApi.createPet({
+          ...pet,
+          userId: currentUser.id
+        });
+        
+        // Update the local state with the response from the backend
+        setPets([...pets, result]);
+      }
+      
+      setShowAddPetForm(false);
+      
+      toast({
+        title: editingPet ? "Pet updated" : "Pet added",
+        description: `Your pet has been ${editingPet ? 'updated' : 'added'} successfully.`,
+      });
+    } catch (error) {
+      console.error('Error saving pet:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "There was an error saving pet information.",
+        variant: "destructive"
+      });
+    }
   };
   
   const handleEditPet = (pet: Pet) => {
     setEditingPet(pet);
     setShowAddPetForm(true);
   };
+  // Load user data and pets when the component mounts
+  useEffect(() => {
+    const loadUserData = async () => {
+      if (!currentUser?.id) {
+        console.log('No current user ID found');
+        setIsLoading(false);
+        return;
+      }
+      
+      try {
+        setIsLoading(true);
+        console.log('Loading user data for:', currentUser.username || currentUser.email);
+        
+        // First, set up basic form data with current user info
+        const basicFormData = {
+          name: currentUser.name || '',
+          email: currentUser.email || '',
+          phone: currentUser.phone || '',
+          location: currentUser.location || '',
+          bio: '',
+          role: (currentUser.role || 'OWNER').toLowerCase(),
+          services: '',
+          capacity: '',
+          rate: '',
+          specialty: '',
+          license: '',
+          availability: ''
+        };
+        
+        setFormData(basicFormData);
+        
+        // Set profile image from current user
+        if (currentUser.profileImage) {
+          setProfileImage(currentUser.profileImage);
+        }
+        
+        // Try to load extended user profile data (optional)
+        try {
+          console.log('Attempting to fetch extended profile data...');
+          const userProfile = await userApi.getUserProfile(currentUser.id);
+          console.log('Extended profile data loaded:', userProfile);
+          
+          // Update form data with extended profile data if available
+          setFormData({
+            name: userProfile.name || currentUser.name || '',
+            email: userProfile.email || currentUser.email || '',
+            phone: userProfile.phone || currentUser.phone || '',
+            location: userProfile.location || currentUser.location || '',
+            bio: userProfile.bio || '',
+            role: (userProfile.role || currentUser.role || 'OWNER').toLowerCase(),
+            services: userProfile.services || '',
+            capacity: userProfile.capacity || '',
+            rate: userProfile.rate || '',
+            specialty: userProfile.specialty || '',
+            license: userProfile.license || '',
+            availability: userProfile.availability || ''
+          });
+          
+          // Update profile image if available
+          if (userProfile.profileImage) {
+            setProfileImage(userProfile.profileImage);
+          }
+        } catch (profileError) {
+          console.warn('Could not load extended profile data:', profileError);
+          // Continue with basic user data - this is not a critical error
+        }
+        
+        // Try to load user's pets (optional)
+        try {
+          console.log('Attempting to fetch user pets...');
+          const userPets = await petApi.getUserPets(currentUser.id);
+          console.log('User pets loaded:', userPets);
+          setPets(userPets || []);
+        } catch (petsError) {
+          console.warn('Could not load user pets:', petsError);
+          setPets([]); // Set empty array as fallback
+        }
+        
+      } catch (error) {
+        console.error('Error in loadUserData:', error);
+        // Don't show error toast for newly registered users - just log and continue
+        console.warn('Profile loading encountered an error, but continuing with basic user data');
+      } finally {
+        setIsLoading(false);
+        console.log('Profile loading completed');
+      }
+    };
+    
+    loadUserData();
+  }, [currentUser?.id]);
 
-  // Loading state
-  if (isLoading) {
+  // Loading state - only show loading if we don't have a current user or if we're explicitly loading
+  if ((isLoading && !currentUser) || authLoading) {
     return (
       <div className="min-h-screen bg-[#FBE7E7] flex items-center justify-center">
         <div className="text-center">
@@ -126,6 +309,17 @@ const Profile = () => {
             <Heart size={40} className="text-burgundy mx-auto" />
           </div>
           <p className="mt-4 text-deep-rose">Loading your profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If we have a user but no ID, show an error
+  if (currentUser && !currentUser.id) {
+    return (
+      <div className="min-h-screen bg-[#FBE7E7] flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-deep-rose">Error: Invalid user data. Please try signing in again.</p>
         </div>
       </div>
     );
@@ -148,19 +342,35 @@ const Profile = () => {
         <div className="flex flex-col md:flex-row gap-8">
           {/* Profile Sidebar */}
           <div className="w-full md:w-1/3">
-            <Card className="romantic-card-accent p-6 rounded-xl shadow-md">
-              <div className="text-center mb-6">
+            <Card className="romantic-card-accent p-6 rounded-xl shadow-md">              <div className="text-center mb-6">
                 <div className="relative mx-auto w-32 h-32 mb-4">
                   <div className="w-32 h-32 bg-rose rounded-full overflow-hidden border-4 border-blush-pink">
                     <img 
-                      src={currentUser?.photoUrl || '/placeholder.svg'} 
+                      src={profileImage} 
                       alt="Profile" 
                       className="w-full h-full object-cover"
                     />
+                    {isUploading && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                        <Loader2 className="w-8 h-8 text-white animate-spin" />
+                      </div>
+                    )}
                   </div>
-                  <button className="absolute bottom-0 right-0 bg-burgundy text-white p-2 rounded-full shadow-md hover:bg-deep-rose transition-colors">
+                  <button 
+                    className="absolute bottom-0 right-0 bg-burgundy text-white p-2 rounded-full shadow-md hover:bg-deep-rose transition-colors"
+                    onClick={triggerFileInput}
+                    disabled={isUploading}
+                    aria-label="Change profile photo"
+                  >
                     <Camera size={18} />
                   </button>
+                  <input 
+                    type="file" 
+                    ref={fileInputRef}
+                    onChange={handleProfilePhotoUpload}
+                    className="hidden" 
+                    accept="image/jpeg, image/png, image/jpg, image/gif" 
+                  />
                 </div>
                 
                 <h1 className="text-2xl font-bold fredoka text-burgundy">
