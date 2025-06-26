@@ -17,6 +17,7 @@ import {
 import { Upload, Camera, X } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { petApi } from '@/services/api';
 
 // Types based on your backend Pet entity
 export type PetGender = 'MALE' | 'FEMALE';
@@ -32,6 +33,7 @@ export type PetFormData = {
   isAvailableForMatch: boolean;
   isAvailableForBoarding: boolean;
   images: string[];
+  _imageFile?: File; // Property to store the actual file for upload
 };
 
 interface AddPetFormProps {
@@ -82,16 +84,63 @@ const AddPetForm = ({ open, onClose, onPetAdded, existingPet }: AddPetFormProps)
   const handleSelectChange = (name: string, value: string) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
+    // File input reference
+  const fileInputRef = useState<HTMLInputElement | null>(null);
   
-  // Handle image upload
+  // Handle image upload via file input
   const handleImageUpload = () => {
-    // In a real implementation, this would open a file picker and upload images
-    // For now, we'll use placeholders
-    const newImage = '/placeholder.svg';
-    setFormData(prev => ({
-      ...prev,
-      images: [...prev.images, newImage]
-    }));
+    // Create a hidden file input and trigger it
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/jpeg, image/png, image/gif';
+    input.multiple = false;
+    
+    // Handle file selection
+    input.onchange = async (e: Event) => {
+      const target = e.target as HTMLInputElement;
+      const file = target.files?.[0];
+      
+      if (!file) return;
+      
+      // Validate file type
+      const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
+      if (!validTypes.includes(file.type)) {
+        toast({
+          title: "Invalid file type",
+          description: "Please upload a JPG, PNG or GIF image.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: "Please upload an image smaller than 5MB.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Show preview immediately
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (e.target?.result) {
+          const previewUrl = e.target.result.toString();
+          setFormData(prev => ({
+            ...prev,
+            images: [...prev.images, previewUrl],
+            // Store the actual file to upload later
+            _imageFile: file
+          }));
+        }
+      };
+      reader.readAsDataURL(file);
+    };
+    
+    // Trigger file selection
+    input.click();
   };
 
   // Remove image
@@ -101,26 +150,62 @@ const AddPetForm = ({ open, onClose, onPetAdded, existingPet }: AddPetFormProps)
       images: prev.images.filter((_, i) => i !== index)
     }));
   };
-
   // Submit the form
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     
     try {
-      // In a real implementation, this would call your API
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+      if (!currentUser?.id) {
+        throw new Error('User not authenticated');
+      }
       
+      // Prepare pet data for backend
       const petData = {
-        ...formData,
-        id: existingPet?.id || 'pet-' + Math.random().toString(36).substring(2),
-        ownerId: currentUser?.id,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        name: formData.name,
+        breed: formData.breed,
+        age: formData.age,
+        gender: formData.gender,
+        vaccinated: formData.vaccinated,
+        description: formData.description,
+        location: formData.location,
+        isAvailableForMatch: formData.isAvailableForMatch,
+        isAvailableForBoarding: formData.isAvailableForBoarding,
+        userId: currentUser.id
       };
-
+      
+      let response;
+      
+      // Create or update the pet in the backend
+      if (existingPet) {
+        response = await petApi.updatePet(existingPet.id, petData);
+      } else {
+        response = await petApi.createPet(petData);
+      }
+      
+      // If we have a new image file to upload and pet was created/updated successfully
+      if (formData._imageFile && response.id) {
+        try {
+          // Upload the pet photo
+          const photoResult = await petApi.uploadPetPhoto(response.id, formData._imageFile);
+          
+          // Update the response with the new image URL
+          if (photoResult.image) {
+            response.image = photoResult.image;
+          }
+        } catch (photoError) {
+          console.error('Failed to upload pet photo:', photoError);
+          // We don't want to fail the whole operation if just the photo upload fails
+          toast({
+            title: "Warning",
+            description: "Pet was saved but the photo couldn't be uploaded. You can try again later.",
+            variant: "default",
+          });
+        }
+      }
+      
       if (onPetAdded) {
-        onPetAdded(petData);
+        onPetAdded(response);
       }
       
       toast({
@@ -135,7 +220,7 @@ const AddPetForm = ({ open, onClose, onPetAdded, existingPet }: AddPetFormProps)
       console.error("Failed to save pet:", error);
       toast({
         title: "Error",
-        description: "Failed to save pet. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to save pet. Please try again.",
         variant: "destructive",
       });
     } finally {

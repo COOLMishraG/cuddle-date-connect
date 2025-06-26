@@ -19,15 +19,14 @@ const SignIn = () => {
   
   // Default to sign-in tab
   const [activeTab, setActiveTab] = useState<"signin" | "signup">("signin");
-  
-  // Form states
+    // Form states
   const [signinData, setSigninData] = useState({
-    email: "",
+    username: "",
     password: "",
   });
-  
-  const [signupData, setSignupData] = useState<SignupData>({
+    const [signupData, setSignupData] = useState<SignupData>({
     name: "",
+    username: "",
     email: "",
     password: "",
     role: "OWNER",
@@ -43,7 +42,22 @@ const SignIn = () => {
     if (isAuthenticated) {
       navigate(redirectTo);
     }
-  }, [isAuthenticated, navigate, redirectTo]);  
+  }, [isAuthenticated, navigate, redirectTo]);
+
+  // Check for OAuth errors in URL params
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const oauthError = searchParams.get('error');
+    if (oauthError) {
+      if (oauthError === 'authentication_failed') {
+        setError('Google authentication failed. Please try again.');
+      } else {
+        setError(decodeURIComponent(oauthError));
+      }
+      // Clean up the URL
+      navigate('/signin', { replace: true });
+    }
+  }, [location.search, setError, navigate]);  
 
   // Handle input change for sign in form
   const handleSignInChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -64,18 +78,17 @@ const SignIn = () => {
       role: value as 'OWNER' | 'SITTER' | 'VET' 
     }));
   };
-  
-  // Handle sign in submission
+    // Handle sign in submission
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!signinData.email || !signinData.password) {
-      setError("Please enter both email and password");
+    if (!signinData.username || !signinData.password) {
+      setError("Please enter both username and password");
       return;
     }
     
     try {
-      await signIn(signinData.email, signinData.password);
+      await signIn(signinData.username, signinData.password);
       navigate(redirectTo);
     } catch (error) {
       console.error("Sign in failed:", error);
@@ -85,10 +98,16 @@ const SignIn = () => {
   // Handle sign up submission
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validate required fields
-    if (!signupData.name || !signupData.email || !signupData.password) {
+      // Validate required fields
+    if (!signupData.name || !signupData.username || !signupData.email || !signupData.password) {
       setError("Please fill in all required fields");
+      return;
+    }
+    
+    // Validate username (no spaces, special characters allowed are _ and .)
+    const usernameRegex = /^[a-zA-Z0-9_.]+$/;
+    if (!usernameRegex.test(signupData.username)) {
+      setError("Username can only contain letters, numbers, underscores, and periods");
       return;
     }
     
@@ -161,17 +180,16 @@ const SignIn = () => {
               </div>
             )}
             
-            <form onSubmit={handleSignIn} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+            <form onSubmit={handleSignIn} className="space-y-4">              <div className="space-y-2">
+                <Label htmlFor="username">Username</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input 
-                    id="email"
-                    name="email"
-                    type="email"
-                    placeholder="your.email@example.com"
-                    value={signinData.email}
+                    id="username"
+                    name="username"
+                    type="text"
+                    placeholder="Your username"
+                    value={signinData.username}
                     onChange={handleSignInChange}
                     className="pl-10"
                     required
@@ -245,6 +263,24 @@ const SignIn = () => {
                     name="name"
                     placeholder="Your Name"
                     value={signupData.name}
+                    onChange={handleSignUpChange}
+                    className="pl-10"
+                    required
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="signup-username">
+                  Username <span className="text-burgundy">*</span>
+                </Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input 
+                    id="signup-username"
+                    name="username"
+                    placeholder="Choose a username"
+                    value={signupData.username}
                     onChange={handleSignUpChange}
                     className="pl-10"
                     required
@@ -372,14 +408,12 @@ const SignIn = () => {
           </TabsContent>
         </Tabs>
         
-        <div className="mt-6 text-center">
-          <p className="text-muted-foreground text-xs">
+        <div className="mt-6 text-center">          <p className="text-muted-foreground text-xs">
             By signing in or signing up, you agree to our{" "}
             <a href="#" className="text-burgundy hover:underline">
               Terms of Service
             </a>{" "}
-            and{" "}
-            <a href="#" className="text-burgundy hover:underline">
+            and{" "}            <a href="#" className="text-burgundy hover:underline">
               Privacy Policy
             </a>
           </p>

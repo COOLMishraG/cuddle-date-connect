@@ -73,14 +73,10 @@ type Testimonial = {
 // API endpoint - would point to your real backend in production
 const API_URL = 'https://api.petmatch.example/testimonials';
 
-const Testimonials = () => {
-	// Initialize state with localStorage values if available
+const Testimonials = () => {	// Initialize state with localStorage values if available
 	const [currentIndex, setCurrentIndex] = useState(0);
 	const [isVisible, setIsVisible] = useState(true);
-	const [isDismissed, setIsDismissed] = useState(() => {
-		const saved = localStorage.getItem('testimonialsDismissed');
-		return saved ? JSON.parse(saved) : false;
-	});
+	const [isDismissed, setIsDismissed] = useState(false); // Start with false, we'll use useEffect to load from localStorage
 	const [isPaused, setIsPaused] = useState(false);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
@@ -119,6 +115,19 @@ const Testimonials = () => {
 			setTestimonials(defaultTestimonials);
 		}
 	};
+	// Load isDismissed from localStorage on component mount
+	useEffect(() => {
+		const saved = localStorage.getItem('testimonialsDismissed');
+		if (saved) {
+			try {
+				const savedValue = JSON.parse(saved);
+				setIsDismissed(savedValue);
+			} catch (e) {
+				// If there's an error parsing the value, reset it
+				localStorage.removeItem('testimonialsDismissed');
+			}
+		}
+	}, []);
 
 	// Fetch testimonials on component mount
 	useEffect(() => {
@@ -173,11 +182,14 @@ const Testimonials = () => {
 
 	if (isDismissed) {
 		return (
-			<div className="fixed bottom-4 right-4 z-40">
-				<Button
+			<div className="fixed bottom-4 right-4 z-40">				<Button
 					variant="outline"
 					size="sm"
-					onClick={() => setIsDismissed(false)}
+					onClick={() => {
+						setIsDismissed(false);
+						// Explicitly set localStorage value
+						localStorage.setItem('testimonialsDismissed', JSON.stringify(false));
+					}}
 					className="bg-white/80 border-rose text-burgundy hover:bg-white hover:text-deep-rose"
 				>
 					<MessageSquare className="w-4 h-4 mr-2" />
@@ -243,19 +255,18 @@ const Testimonials = () => {
 					>
 						<Card className="subtle-elevation border border-rose bg-white/90 backdrop-blur-sm shadow-lg overflow-hidden romantic-card-accent hover:shadow-xl transition-shadow">
 							<div className="absolute -top-6 -right-6 w-12 h-12 bg-burgundy rounded-full" />
-							<div className="absolute -bottom-6 -left-6 w-12 h-12 bg-rose/50 rounded-full" />
-							<button
-								onClick={() => setIsDismissed(true)}
+							<div className="absolute -bottom-6 -left-6 w-12 h-12 bg-rose/50 rounded-full" />							<button
+								onClick={(e) => {
+									e.stopPropagation(); // Prevent event bubbling
+									setIsDismissed(true);
+									// Explicitly set localStorage value
+									localStorage.setItem('testimonialsDismissed', JSON.stringify(true));
+								}}
 								className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 rounded-full w-6 h-6 flex items-center justify-center z-10"
 								aria-label="Close testimonials"
 							>
 								<X size={14} />
-							</button>
-
-							<div className="p-4 relative z-10">
-								<h3 className="text-sm font-semibold text-burgundy mb-2 fredoka">
-									User Testimonials
-								</h3>
+							</button>							<div className="p-4 relative z-10">
 								<div className="flex gap-3 items-start mb-2">
 									<div className="w-10 h-10 rounded-full overflow-hidden gradient-warm flex-shrink-0 border-2 border-blush-pink">
 										<img
