@@ -34,7 +34,7 @@ const PetSitting = () => {
   ];
   return (
     <div className="min-h-screen bg-[#FBE7E7] relative overflow-hidden">
-      {/* Floating Background Shapes */}
+      {/* Floating Background Shapes - Enhanced with more emojis */}
       <div className="floating-shape absolute top-[6%] left-[9%] text-4xl float-1">🏠</div>
       <div className="floating-shape absolute top-[12%] right-[12%] text-3xl float-2">🐾</div>
       <div className="floating-shape absolute bottom-[22%] left-[8%] text-5xl float-3">❤️</div>
@@ -42,6 +42,24 @@ const PetSitting = () => {
       <div className="floating-shape absolute bottom-[28%] right-[22%] text-3xl float-2" style={{ animationDelay: '3s' }}>💕</div>
       <div className="floating-shape absolute top-[48%] right-[9%] text-4xl float-3" style={{ animationDelay: '1s' }}>🐈</div>
       <div className="floating-shape absolute bottom-[9%] left-[42%] text-2xl float-1" style={{ animationDelay: '4s' }}>🐶</div>
+      
+      {/* Additional floating emojis for pet sitting */}
+      <div className="floating-shape absolute top-[18%] left-[65%] text-3xl float-2" style={{ animationDelay: '1.5s' }}>🐕‍🦺</div>
+      <div className="floating-shape absolute top-[62%] left-[18%] text-2xl float-3" style={{ animationDelay: '2.5s' }}>🦴</div>
+      <div className="floating-shape absolute bottom-[38%] left-[75%] text-4xl float-1" style={{ animationDelay: '3.5s' }}>🎾</div>
+      <div className="floating-shape absolute top-[78%] right-[45%] text-3xl float-2" style={{ animationDelay: '0.5s' }}>🧸</div>
+      <div className="floating-shape absolute top-[25%] left-[55%] text-2xl float-3" style={{ animationDelay: '4.5s' }}>🍖</div>
+      <div className="floating-shape absolute bottom-[65%] right-[18%] text-5xl float-1" style={{ animationDelay: '1.8s' }}>💙</div>
+      <div className="floating-shape absolute top-[88%] left-[25%] text-3xl float-2" style={{ animationDelay: '3.2s' }}>🎈</div>
+      <div className="floating-shape absolute bottom-[12%] right-[65%] text-2xl float-3" style={{ animationDelay: '2.8s' }}>⭐</div>
+      <div className="floating-shape absolute top-[28%] left-[48%] text-4xl float-1" style={{ animationDelay: '4.2s' }}>🏆</div>
+      <div className="floating-shape absolute bottom-[45%] left-[32%] text-3xl float-2" style={{ animationDelay: '0.8s' }}>🌟</div>
+      <div className="floating-shape absolute top-[58%] right-[32%] text-2xl float-3" style={{ animationDelay: '3.8s' }}>🐦</div>
+      <div className="floating-shape absolute bottom-[52%] left-[62%] text-4xl float-1" style={{ animationDelay: '1.2s' }}>💜</div>
+      <div className="floating-shape absolute top-[72%] left-[82%] text-3xl float-2" style={{ animationDelay: '4.8s' }}>🦊</div>
+      <div className="floating-shape absolute top-[5%] left-[38%] text-2xl float-3" style={{ animationDelay: '2.2s' }}>🐰</div>
+      <div className="floating-shape absolute bottom-[18%] right-[8%] text-4xl float-1" style={{ animationDelay: '3.7s' }}>🐈‍⬛</div>
+      <div className="floating-shape absolute top-[42%] left-[12%] text-3xl float-2" style={{ animationDelay: '1.9s' }}>🌸</div>
       
       <Header />
       <div className="container mx-auto px-4 py-8 relative z-10">

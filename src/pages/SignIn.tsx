@@ -148,7 +148,7 @@ const SignIn = () => {
 
   return (
     <div className="min-h-screen bg-[#FBE7E7] flex items-center justify-center p-4">
-      {/* Floating Background Shapes - same as other pages */}
+      {/* Floating Background Shapes - Enhanced with more emojis */}
       <div className="floating-shape absolute top-[5%] left-[5%] text-4xl float-1">💕</div>
       <div className="floating-shape absolute top-[10%] right-[8%] text-3xl float-2">🐾</div>
       <div className="floating-shape absolute bottom-[20%] left-[7%] text-5xl float-3">❤️</div>
@@ -156,6 +156,21 @@ const SignIn = () => {
       <div className="floating-shape absolute bottom-[25%] right-[25%] text-3xl float-2" style={{ animationDelay: '3s' }}>🩺</div>
       <div className="floating-shape absolute top-[40%] right-[5%] text-4xl float-3" style={{ animationDelay: '1s' }}>💖</div>
       <div className="floating-shape absolute bottom-[10%] left-[50%] text-2xl float-1" style={{ animationDelay: '4s' }}>🐕</div>
+      
+      {/* Additional floating emojis */}
+      <div className="floating-shape absolute top-[15%] left-[75%] text-3xl float-2" style={{ animationDelay: '1.5s' }}>🐱</div>
+      <div className="floating-shape absolute top-[60%] left-[15%] text-2xl float-3" style={{ animationDelay: '2.5s' }}>🦴</div>
+      <div className="floating-shape absolute bottom-[40%] left-[85%] text-4xl float-1" style={{ animationDelay: '3.5s' }}>🎾</div>
+      <div className="floating-shape absolute top-[75%] right-[45%] text-3xl float-2" style={{ animationDelay: '0.5s' }}>🐕‍🦺</div>
+      <div className="floating-shape absolute top-[30%] left-[65%] text-2xl float-3" style={{ animationDelay: '4.5s' }}>🦮</div>
+      <div className="floating-shape absolute bottom-[60%] right-[15%] text-5xl float-1" style={{ animationDelay: '1.8s' }}>💙</div>
+      <div className="floating-shape absolute top-[85%] left-[25%] text-3xl float-2" style={{ animationDelay: '3.2s' }}>🐾</div>
+      <div className="floating-shape absolute bottom-[5%] right-[65%] text-2xl float-3" style={{ animationDelay: '2.8s' }}>🍖</div>
+      <div className="floating-shape absolute top-[20%] left-[45%] text-4xl float-1" style={{ animationDelay: '4.2s' }}>🧸</div>
+      <div className="floating-shape absolute bottom-[35%] left-[25%] text-3xl float-2" style={{ animationDelay: '0.8s' }}>🎈</div>
+      <div className="floating-shape absolute top-[55%] right-[35%] text-2xl float-3" style={{ animationDelay: '3.8s' }}>🏆</div>
+      <div className="floating-shape absolute bottom-[50%] left-[55%] text-4xl float-1" style={{ animationDelay: '1.2s' }}>🌟</div>
+      <div className="floating-shape absolute top-[70%] left-[80%] text-3xl float-2" style={{ animationDelay: '4.8s' }}>🦊</div>
       
       <Card className="romantic-card-accent w-full max-w-md p-6 relative z-10">
         <div className="mb-6 text-center">

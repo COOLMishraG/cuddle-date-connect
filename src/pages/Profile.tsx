@@ -183,7 +183,7 @@ const Profile = () => {
         result = await petApi.createPet({
           ...pet,
           userId: currentUser.id
-        });
+        }, currentUser.username);
         
         // Update the local state with the response from the backend
         setPets([...pets, result]);
@@ -279,7 +279,7 @@ const Profile = () => {
         // Try to load user's pets (optional)
         try {
           console.log('Attempting to fetch user pets...');
-          const userPets = await petApi.getUserPets(currentUser.id);
+          const userPets = await petApi.getUserPets(currentUser.username);
           console.log('User pets loaded:', userPets);
           setPets(userPets || []);
         } catch (petsError) {
@@ -327,7 +327,7 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-[#FBE7E7] relative overflow-hidden">
-      {/* Floating Background Shapes */}
+      {/* Floating Background Shapes - Enhanced with more emojis */}
       <div className="floating-shape absolute top-[7%] left-[15%] text-4xl float-1">💕</div>
       <div className="floating-shape absolute top-[18%] right-[12%] text-3xl float-2">🐾</div>
       <div className="floating-shape absolute bottom-[15%] left-[10%] text-5xl float-3">❤️</div>
@@ -335,6 +335,27 @@ const Profile = () => {
       <div className="floating-shape absolute bottom-[30%] right-[20%] text-3xl float-2" style={{ animationDelay: '3s' }}>🩺</div>
       <div className="floating-shape absolute top-[50%] right-[5%] text-4xl float-3" style={{ animationDelay: '1s' }}>💖</div>
       <div className="floating-shape absolute bottom-[5%] left-[40%] text-2xl float-1" style={{ animationDelay: '4s' }}>🐕</div>
+      
+      {/* Additional floating emojis */}
+      <div className="floating-shape absolute top-[12%] left-[65%] text-3xl float-2" style={{ animationDelay: '1.5s' }}>🐱</div>
+      <div className="floating-shape absolute top-[60%] left-[18%] text-2xl float-3" style={{ animationDelay: '2.5s' }}>🦴</div>
+      <div className="floating-shape absolute bottom-[40%] left-[75%] text-4xl float-1" style={{ animationDelay: '3.5s' }}>🎾</div>
+      <div className="floating-shape absolute top-[75%] right-[45%] text-3xl float-2" style={{ animationDelay: '0.5s' }}>🐕‍🦺</div>
+      <div className="floating-shape absolute top-[28%] left-[55%] text-2xl float-3" style={{ animationDelay: '4.5s' }}>🦮</div>
+      <div className="floating-shape absolute bottom-[60%] right-[15%] text-5xl float-1" style={{ animationDelay: '1.8s' }}>💙</div>
+      <div className="floating-shape absolute top-[85%] left-[28%] text-3xl float-2" style={{ animationDelay: '3.2s' }}>🐾</div>
+      <div className="floating-shape absolute bottom-[8%] right-[60%] text-2xl float-3" style={{ animationDelay: '2.8s' }}>🍖</div>
+      <div className="floating-shape absolute top-[22%] left-[42%] text-4xl float-1" style={{ animationDelay: '4.2s' }}>🧸</div>
+      <div className="floating-shape absolute bottom-[25%] left-[32%] text-3xl float-2" style={{ animationDelay: '0.8s' }}>🎈</div>
+      <div className="floating-shape absolute top-[65%] right-[35%] text-2xl float-3" style={{ animationDelay: '3.8s' }}>🏆</div>
+      <div className="floating-shape absolute bottom-[45%] left-[58%] text-4xl float-1" style={{ animationDelay: '1.2s' }}>🌟</div>
+      <div className="floating-shape absolute top-[80%] left-[78%] text-3xl float-2" style={{ animationDelay: '4.8s' }}>🦊</div>
+      <div className="floating-shape absolute top-[5%] left-[35%] text-2xl float-3" style={{ animationDelay: '2.2s' }}>🐰</div>
+      <div className="floating-shape absolute bottom-[20%] right-[8%] text-4xl float-1" style={{ animationDelay: '3.7s' }}>🐈‍⬛</div>
+      <div className="floating-shape absolute top-[45%] left-[8%] text-3xl float-2" style={{ animationDelay: '1.9s' }}>🌸</div>
+      <div className="floating-shape absolute bottom-[55%] right-[65%] text-2xl float-3" style={{ animationDelay: '4.3s' }}>🐦</div>
+      <div className="floating-shape absolute top-[90%] left-[50%] text-4xl float-1" style={{ animationDelay: '0.3s' }}>💜</div>
+      <div className="floating-shape absolute top-[15%] right-[70%] text-3xl float-2" style={{ animationDelay: '2.7s' }}>🌺</div>
       
       <Header />
       
@@ -559,9 +580,13 @@ const Profile = () => {
                       <Card key={pet.id} className="overflow-hidden border border-rose">
                         <div className="relative h-40 bg-gray-100">
                           <img 
-                            src={pet.image} 
+                            src={pet.imageUrl  || '/placeholder.svg'} 
                             alt={pet.name} 
                             className="w-full h-full object-cover"
+                            onError={(e) => {
+                              // Fallback to placeholder if image fails to load
+                              (e.target as HTMLImageElement).src = '/placeholder.svg';
+                            }}
                           />
                           <button 
                             className="absolute top-2 right-2 bg-burgundy/80 hover:bg-burgundy text-white p-1.5 rounded-full"
