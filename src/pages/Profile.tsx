@@ -580,7 +580,7 @@ const Profile = () => {
                       <Card key={pet.id} className="overflow-hidden border border-rose">
                         <div className="relative h-40 bg-gray-100">
                           <img 
-                            src={pet.imageUrl || pet.image || '/placeholder.svg'} 
+                            src={pet.imageUrl  || '/placeholder.svg'} 
                             alt={pet.name} 
                             className="w-full h-full object-cover"
                             onError={(e) => {
