@@ -6,8 +6,11 @@ export interface Pet {
   age: number;
   gender: string;
   vaccinated: boolean;
-  image: string;
+  imageUrl: string; // Cloud-based image URL
   description: string;
+  location?: string;
+  isAvailableForMatch?: boolean;
+  isAvailableForBoarding?: boolean;
   userId?: string;
   createdAt?: Date;
   updatedAt?: Date;
@@ -20,7 +23,10 @@ export interface PetData {
   age: number;
   gender: string;
   vaccinated: boolean;
-  image?: string;
+  imageUrl?: string; // Cloud-based image URL
   description: string;
+  location?: string;
+  isAvailableForMatch?: boolean;
+  isAvailableForBoarding?: boolean;
   userId?: string;
 }

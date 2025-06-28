@@ -75,7 +75,7 @@ const ApiTestButton: React.FC = () => {
         
         // Test pets endpoint
         await runTest("User Pets", async () => {
-          return await petApi.getUserPets(currentUser.id);
+          return await petApi.getUserPets(currentUser.username);
         });
       }
       

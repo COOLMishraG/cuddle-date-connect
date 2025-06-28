@@ -14,10 +14,11 @@ import {
   DialogHeader, 
   DialogTitle 
 } from '@/components/ui/dialog';
-import { Upload, Camera, X } from 'lucide-react';
+import { Upload, Camera, X, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { petApi } from '@/services/api';
+import { uploadImageToCloudinary, validateImageFile } from '@/services/cloudinary';
 
 // Types based on your backend Pet entity
 export type PetGender = 'MALE' | 'FEMALE';
@@ -33,7 +34,7 @@ export type PetFormData = {
   isAvailableForMatch: boolean;
   isAvailableForBoarding: boolean;
   images: string[];
-  _imageFile?: File; // Property to store the actual file for upload
+  imageUrl?: string; // Single main image URL from cloud storage
 };
 
 interface AddPetFormProps {
@@ -58,10 +59,12 @@ const AddPetForm = ({ open, onClose, onPetAdded, existingPet }: AddPetFormProps)
     isAvailableForMatch: existingPet?.isAvailableForMatch || false,
     isAvailableForBoarding: existingPet?.isAvailableForBoarding || false,
     images: existingPet?.images || ['/placeholder.svg'],
+    imageUrl: existingPet?.imageUrl || '',
   };
   
   const [formData, setFormData] = useState<PetFormData>(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   
   // Handle input change
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -84,15 +87,12 @@ const AddPetForm = ({ open, onClose, onPetAdded, existingPet }: AddPetFormProps)
   const handleSelectChange = (name: string, value: string) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
-    // File input reference
-  const fileInputRef = useState<HTMLInputElement | null>(null);
-  
-  // Handle image upload via file input
-  const handleImageUpload = () => {
+  // Handle image upload via file input with Cloudinary
+  const handleImageUpload = async () => {
     // Create a hidden file input and trigger it
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = 'image/jpeg, image/png, image/gif';
+    input.accept = 'image/jpeg, image/png, image/gif, image/webp';
     input.multiple = false;
     
     // Handle file selection
@@ -102,54 +102,53 @@ const AddPetForm = ({ open, onClose, onPetAdded, existingPet }: AddPetFormProps)
       
       if (!file) return;
       
-      // Validate file type
-      const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
-      if (!validTypes.includes(file.type)) {
+      // Validate file
+      const validation = validateImageFile(file);
+      if (!validation.isValid) {
         toast({
-          title: "Invalid file type",
-          description: "Please upload a JPG, PNG or GIF image.",
+          title: "Invalid file",
+          description: validation.error,
           variant: "destructive"
         });
         return;
       }
       
-      // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
+      setIsUploadingImage(true);
+      
+      try {
+        // Upload to Cloudinary
+        const cloudinaryUrl = await uploadImageToCloudinary(file, 'pets');
+        
+        // Update form data with the cloud URL
+        setFormData(prev => ({
+          ...prev,
+          imageUrl: cloudinaryUrl,
+          images: [cloudinaryUrl] // Replace the placeholder with the actual image
+        }));
+        
+        console.log('Image uploaded successfully. URL:', cloudinaryUrl);
+
         toast({
-          title: "File too large",
-          description: "Please upload an image smaller than 5MB.",
+          title: "Image uploaded",
+          description: "Your pet's photo has been uploaded successfully!",
+        });
+        
+      } catch (error) {
+        console.error('Error uploading image:', error);
+        toast({
+          title: "Upload failed",
+          description: error instanceof Error ? error.message : "Failed to upload image. Please try again.",
           variant: "destructive"
         });
-        return;
+      } finally {
+        setIsUploadingImage(false);
       }
-      
-      // Show preview immediately
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        if (e.target?.result) {
-          const previewUrl = e.target.result.toString();
-          setFormData(prev => ({
-            ...prev,
-            images: [...prev.images, previewUrl],
-            // Store the actual file to upload later
-            _imageFile: file
-          }));
-        }
-      };
-      reader.readAsDataURL(file);
     };
     
     // Trigger file selection
     input.click();
   };
 
-  // Remove image
-  const handleRemoveImage = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      images: prev.images.filter((_, i) => i !== index)
-    }));
-  };
   // Submit the form
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -171,7 +170,8 @@ const AddPetForm = ({ open, onClose, onPetAdded, existingPet }: AddPetFormProps)
         location: formData.location,
         isAvailableForMatch: formData.isAvailableForMatch,
         isAvailableForBoarding: formData.isAvailableForBoarding,
-        userId: currentUser.id
+        userId: currentUser.id,
+        imageUrl: formData.imageUrl || null // Include the cloud image URL
       };
       
       let response;
@@ -180,28 +180,7 @@ const AddPetForm = ({ open, onClose, onPetAdded, existingPet }: AddPetFormProps)
       if (existingPet) {
         response = await petApi.updatePet(existingPet.id, petData);
       } else {
-        response = await petApi.createPet(petData);
-      }
-      
-      // If we have a new image file to upload and pet was created/updated successfully
-      if (formData._imageFile && response.id) {
-        try {
-          // Upload the pet photo
-          const photoResult = await petApi.uploadPetPhoto(response.id, formData._imageFile);
-          
-          // Update the response with the new image URL
-          if (photoResult.image) {
-            response.image = photoResult.image;
-          }
-        } catch (photoError) {
-          console.error('Failed to upload pet photo:', photoError);
-          // We don't want to fail the whole operation if just the photo upload fails
-          toast({
-            title: "Warning",
-            description: "Pet was saved but the photo couldn't be uploaded. You can try again later.",
-            variant: "default",
-          });
-        }
+        response = await petApi.createPet(petData, currentUser.username);
       }
       
       if (onPetAdded) {
@@ -245,35 +224,48 @@ const AddPetForm = ({ open, onClose, onPetAdded, existingPet }: AddPetFormProps)
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
           {/* Pet Images */}
           <div className="space-y-2">
-            <Label>Pet Photos</Label>
+            <Label>Pet Photo</Label>
             <div className="flex flex-wrap gap-2">
-              {formData.images.map((image, index) => (
-                <div key={index} className="relative w-20 h-20 bg-gray-100 rounded-md overflow-hidden">
-                  <img 
-                    src={image}
-                    alt={`Pet ${index + 1}`}
-                    className="w-full h-full object-cover"
+              {/* Display uploaded image or placeholder */}
+              {formData.imageUrl ? (
+                <div className="relative w-20 h-20">
+                  <img
+                    src={formData.imageUrl}
+                    alt="Pet"
+                    className="w-full h-full object-cover rounded-md"
                   />
                   <button
                     type="button"
-                    onClick={() => handleRemoveImage(index)}
-                    className="absolute top-0 right-0 bg-rose-500/80 text-white p-1 rounded-bl-md"
+                    onClick={() => setFormData(prev => ({ 
+                      ...prev, 
+                      imageUrl: '', 
+                      images: ['/placeholder.svg'] 
+                    }))}
+                    className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
                   >
-                    <X size={14} />
+                    <X size={12} />
                   </button>
                 </div>
-              ))}
-              
-              <button
-                type="button"
-                onClick={handleImageUpload}
-                className="w-20 h-20 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center hover:border-burgundy transition-colors"
-              >
-                <Upload size={20} className="text-gray-500" />
-              </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleImageUpload}
+                  disabled={isUploadingImage}
+                  className="group w-20 h-20 border-2 border-dashed border-gray-300 rounded-md flex flex-col items-center justify-center hover:border-burgundy transition-colors disabled:opacity-50"
+                >
+                  {isUploadingImage ? (
+                    <Loader2 size={20} className="text-burgundy animate-spin" />
+                  ) : (
+                    <>
+                      <Upload size={16} className="text-gray-500 group-hover:text-burgundy" />
+                      <span className="text-xs text-gray-500 mt-1">Upload</span>
+                    </>
+                  )}
+                </button>
+              )}
             </div>
             <p className="text-xs text-muted-foreground">
-              Upload multiple photos of your pet (max 5)
+              {isUploadingImage ? 'Uploading...' : 'Upload a photo of your pet (JPG, PNG, GIF, WebP - max 10MB)'}
             </p>
           </div>
           

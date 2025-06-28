@@ -13,6 +13,7 @@ interface PetCardProps {
     location: string;
     owner: string;
     image: string;
+    imageUrl?: string; // Cloud-based image URL
     description: string;
     gender: string;
     vaccinated: boolean;
@@ -39,9 +40,13 @@ const PetCard = ({ pet, onSwipe }: PetCardProps) => {
       {/* Pet Image */}
       <div className="relative h-72 overflow-hidden rounded-t-lg">
         <img
-          src={pet.image || "/placeholder.svg"}
+          src={pet.imageUrl || pet.image || "/placeholder.svg"}
           alt={pet.name}
           className="w-full h-full object-cover"
+          onError={(e) => {
+            // Fallback to placeholder if image fails to load
+            (e.target as HTMLImageElement).src = '/placeholder.svg';
+          }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-burgundy/60 via-transparent to-transparent"></div>
         

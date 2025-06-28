@@ -189,15 +189,48 @@ export const userApi = {
 
 // Pet-related API calls
 export const petApi = {
-  // Create a new pet
-  createPet: async (petData: any) => {
+  // Create a new pet using owner username
+  createPet: async (petData: any, ownerUsername: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/pets/by-username`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...petData,
+          ownerUsername: ownerUsername
+        }),
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        if (response.status === 400) {
+          throw new Error(errorData.message || 'Invalid pet data');
+        }
+        throw new Error(errorData.message || 'Failed to create pet');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error creating pet:', error);
+      throw error;
+    }
+  },
+
+  // Alternative: Create pet using owner ID (if needed)
+  createPetByOwnerId: async (petData: any, ownerId: string) => {
     try {
       const response = await fetch(`${API_BASE_URL}/pets`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(petData),
+        body: JSON.stringify({
+          ...petData,
+          ownerId: ownerId
+        }),
         credentials: 'include',
       });
       
@@ -267,10 +300,10 @@ export const petApi = {
     }
   },
   
-  // Get user's pets
-  getUserPets: async (userId: string) => {
+  // Get user's pets by username
+  getUserPets: async (username: string) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/users/${userId}/pets`, {
+      const response = await fetch(`${API_BASE_URL}/pets/owner/${username}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -286,6 +319,29 @@ export const petApi = {
       return await response.json();
     } catch (error) {
       console.error('Error getting pets:', error);
+      throw error;
+    }
+  },
+
+  // Get all pets
+  getAllPets: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/pets`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to get pets');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error getting all pets:', error);
       throw error;
     }
   }
