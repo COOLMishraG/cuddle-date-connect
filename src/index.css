@@ -30,6 +30,103 @@
     z-index: 1;
     transform-origin: center center;
   }
+
+  /* New modern styles for landing page */
+  .nav-capsule {
+    position: absolute;
+    height: 40px;
+    background: linear-gradient(90deg, rgba(236, 72, 153, 0.1), rgba(147, 51, 234, 0.1));
+    border-radius: 20px;
+    transition: all 0.3s ease;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .nav-capsule.active {
+    opacity: 1;
+  }
+
+  .tooltip {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    color: #374151;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 1000;
+    margin-top: 8px;
+  }
+
+  .tooltip::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 8px;
+    height: 8px;
+    background: white;
+    border-radius: 2px;
+    transform: translateX(-50%) rotate(45deg);
+  }
+
+  .tooltip.show {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  /* Gradient text animation */
+  .gradient-text {
+    background: linear-gradient(45deg, #ec4899, #8b5cf6, #06b6d4, #10b981);
+    background-size: 300% 300%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradient-shift 3s ease infinite;
+  }
+
+  @keyframes gradient-shift {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  /* Smooth scroll behavior */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #f1f5f9;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(45deg, #ec4899, #8b5cf6);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(45deg, #db2777, #7c3aed);
+  }
 }
 
 /* All animations and styles are now imported from romantic-theme.css */

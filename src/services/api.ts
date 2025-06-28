@@ -69,6 +69,30 @@ export const userApi = {
     }
   },
   
+  // Update user by username
+  updateUserByUsername: async (username: string, userData: Partial<User>) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/users/username/${username}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update user by username');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error updating user by username:', error);
+      throw error;
+    }
+  },
+
   // Upload profile photo
   uploadProfilePhoto: async (userId: string, photoFile: File) => {
     try {
@@ -503,4 +527,30 @@ export const authApi = {
       throw error;
     }
   }
+};
+
+// Vet-related API calls
+export const vetApi = {
+  // Get all vets
+  getAllVets: async (): Promise<User[]> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/users/vets`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to get vets');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error getting vets:', error);
+      throw error;
+    }
+  },
 };

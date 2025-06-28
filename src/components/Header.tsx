@@ -1,127 +1,111 @@
-import { useState, useRef } from 'react';
-import { Heart, User, Search, Menu, X, LogOut } from 'lucide-react';
+import { useState } from 'react';
+import { Heart, User, Search, Menu, X, LogOut, Home, Stethoscope, Users, Dog } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
-// This is a simplified header without authentication that will work for all pages
-// Once you have the authentication context properly set up, you can replace this with the full version
-
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
-  const [capsuleStyle, setCapsuleStyle] = useState({ width: 0, left: 0 });
-  const navRef = useRef<HTMLElement>(null);
   const navigate = useNavigate();
-  const { isAuthenticated, currentUser, signOut } = useAuth();
+  const { currentUser, isAuthenticated, signOut } = useAuth();
 
   const navItems = [
-    { id: 'breeding', label: 'Breeding', path: '/breeding', description: 'Find perfect breeding partners for your pets' },
-    { id: 'sitting', label: 'Pet Sitting', path: '/pet-sitting', description: 'Book trusted sitters for your pets' },
-    { id: 'vets', label: 'Veterinary', path: '/veterinary', description: 'Connect with certified veterinarians' },
-    { id: 'community', label: 'Community', path: '/community', description: 'Join our pet lover community' }
+    { id: 'home', label: 'Home', path: '/', icon: Home },
+    { id: 'breeding', label: 'Breeding', path: '/breeding', icon: Dog },
+    { id: 'sitting', label: 'Pet Sitting', path: '/pet-sitting', icon: Heart },
+    { id: 'vets', label: 'Veterinary', path: '/veterinary', icon: Stethoscope },
+    { id: 'community', label: 'Community', path: '/community', icon: Users }
   ];
-
-  const handleMouseEnter = (item: any, event: React.MouseEvent) => {
-    const target = event.currentTarget as HTMLElement;
-    const rect = target.getBoundingClientRect();
-    const navRect = navRef.current?.getBoundingClientRect();
-    
-    if (navRect) {
-      setCapsuleStyle({
-        width: rect.width + 16,
-        left: rect.left - navRect.left - 8
-      });
-    }
-    
-    setHoveredItem(item.id);
-  };
-
-  const handleMouseLeave = () => {
-    setHoveredItem(null);
-  };
 
   const handleNavClick = (path: string) => {
     navigate(path);
     setIsMenuOpen(false);
   };
 
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
+
   return (
-    <header className="bg-[#FBE7E7]/95 backdrop-blur-sm border-b border-[#FFD1DC] sticky top-0 z-50">
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex items-center justify-between">
+    <header className="fixed top-0 w-full z-50 bg-white/95 backdrop-blur-xl border-b border-gray-200/50 shadow-lg">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div 
-            className="flex items-center space-x-2 cursor-pointer" 
+            className="flex items-center space-x-3 cursor-pointer group" 
             onClick={() => navigate('/')}
           >
-            <div className="w-10 h-10 gradient-warm rounded-xl flex items-center justify-center">
-              <Heart className="w-6 h-6 text-white" />
+            <div className="relative">
+              <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-all duration-300 shadow-lg group-hover:shadow-xl">
+                <Heart className="w-5 h-5 text-white" />
+              </div>
+              <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-xl blur opacity-25 group-hover:opacity-40 transition duration-300"></div>
             </div>
-            <span className="text-xl font-bold fredoka bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              PetMatch
-            </span>
+            <div className="hidden sm:block">
+              <span className="text-xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                PetMatch
+              </span>
+            </div>
           </div>
 
           {/* Desktop Navigation */}
-          <nav 
-            ref={navRef} 
-            className="hidden md:flex items-center space-x-8 relative"
-            onMouseLeave={handleMouseLeave}
-          >
-            <div 
-              className={`nav-capsule ${hoveredItem ? 'active' : ''}`}
-              style={capsuleStyle}
-            />
-            {navItems.map((item) => (
-              <div key={item.id} className="relative">
+          <nav className="hidden md:flex items-center space-x-1">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              return (
                 <button
-                  className="text-foreground hover:text-primary transition-colors font-medium relative z-10 px-4 py-2"
-                  onMouseEnter={(e) => handleMouseEnter(item, e)}
+                  key={item.id}
                   onClick={() => handleNavClick(item.path)}
+                  className="relative group px-4 py-2 rounded-xl text-gray-700 hover:text-indigo-600 transition-all duration-300 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50"
                 >
-                  {item.label}
+                  <div className="flex items-center space-x-2">
+                    <Icon className="w-4 h-4" />
+                    <span className="font-medium">{item.label}</span>
+                  </div>
+                  
+                  {/* Hover indicator */}
+                  <div className="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 rounded-full"></div>
                 </button>
-                <div className={`tooltip ${hoveredItem === item.id ? 'show' : ''}`}>
-                  {item.description}
-                </div>
-              </div>
-            ))}
-          </nav>          {/* Desktop Actions */}
-          <div className="hidden md:flex items-center space-x-4">
-            <Button variant="ghost" size="sm">
+              );
+            })}
+          </nav>
+
+          {/* Desktop Actions */}
+          <div className="hidden md:flex items-center space-x-3">
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => navigate('/search')}
+              className="bg-gray-100/50 hover:bg-gray-200/50 text-gray-700 border-0 rounded-xl transition-all duration-300"
+            >
               <Search className="w-4 h-4 mr-2" />
               Search
             </Button>
             
             {isAuthenticated ? (
-              <div className="flex items-center space-x-2">
+              <>
                 <Button 
-                  variant="outline" 
+                  variant="ghost" 
                   size="sm"
                   onClick={() => navigate('/profile')}
-                  className="border-burgundy text-burgundy hover:bg-burgundy hover:text-white"
+                  className="bg-gray-100/50 hover:bg-gray-200/50 text-gray-700 border-0 rounded-xl transition-all duration-300"
                 >
                   <User className="w-4 h-4 mr-2" />
                   Profile
                 </Button>
                 <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => {
-                    signOut();
-                    navigate('/signin');
-                  }}
-                  className="text-gray-600 hover:text-burgundy"
+                  onClick={handleSignOut}
+                  className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white border-0 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
                 >
                   <LogOut className="w-4 h-4 mr-2" />
                   Sign Out
                 </Button>
-              </div>
+              </>
             ) : (
               <Button 
-                className="btn-gradient"
                 onClick={() => navigate('/signin')}
+                className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white border-0 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 Sign In
               </Button>
@@ -130,7 +114,7 @@ const Header = () => {
 
           {/* Mobile menu button */}
           <button 
-            className="md:hidden text-foreground hover:text-primary"
+            className="md:hidden p-2 rounded-xl text-gray-700 hover:text-indigo-600 hover:bg-gray-100/50 transition-all duration-300"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
             {isMenuOpen ? (
@@ -143,52 +127,56 @@ const Header = () => {
 
         {/* Mobile menu */}
         {isMenuOpen && (
-          <div className="md:hidden py-4 border-t border-border mt-4">
-            <div className="flex flex-col space-y-3">
-              {navItems.map((item) => (
-                <button
-                  key={item.id}
-                  className="text-left text-foreground hover:text-primary p-2"
-                  onClick={() => handleNavClick(item.path)}
-                >
-                  {item.label}
-                </button>
-              ))}              <div className="h-px bg-border my-2"></div>
+          <div className="md:hidden">
+            <div className="px-2 pt-2 pb-3 space-y-1 bg-white/95 backdrop-blur-xl rounded-b-2xl border-t border-gray-200/50 shadow-xl">
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => handleNavClick(item.path)}
+                    className="w-full flex items-center space-x-3 px-4 py-3 text-left text-gray-700 hover:text-indigo-600 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 rounded-xl transition-all duration-300"
+                  >
+                    <Icon className="w-5 h-5" />
+                    <span className="font-medium">{item.label}</span>
+                  </button>
+                );
+              })}
+              
+              <div className="h-px bg-gray-200 my-2"></div>
+              
               <button
-                className="text-left text-foreground hover:text-primary p-2 flex items-center"
-                onClick={() => navigate('/search')}
+                onClick={() => handleNavClick('/search')}
+                className="w-full flex items-center space-x-3 px-4 py-3 text-left text-gray-700 hover:text-indigo-600 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 rounded-xl transition-all duration-300"
               >
-                <Search className="w-4 h-4 mr-2" />
-                Search
+                <Search className="w-5 h-5" />
+                <span className="font-medium">Search</span>
               </button>
               
               {isAuthenticated ? (
                 <>
                   <button
-                    className="text-left text-foreground hover:text-primary p-2 flex items-center"
-                    onClick={() => navigate('/profile')}
+                    onClick={() => handleNavClick('/profile')}
+                    className="w-full flex items-center space-x-3 px-4 py-3 text-left text-gray-700 hover:text-indigo-600 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 rounded-xl transition-all duration-300"
                   >
-                    <User className="w-4 h-4 mr-2" />
-                    My Profile
+                    <User className="w-5 h-5" />
+                    <span className="font-medium">Profile</span>
                   </button>
                   <button
-                    className="text-left text-foreground hover:text-primary p-2 flex items-center"
-                    onClick={() => {
-                      signOut();
-                      navigate('/signin');
-                    }}
+                    onClick={handleSignOut}
+                    className="w-full flex items-center space-x-3 px-4 py-3 text-left text-red-600 hover:text-red-700 hover:bg-red-50 rounded-xl transition-all duration-300"
                   >
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Sign Out
+                    <LogOut className="w-5 h-5" />
+                    <span className="font-medium">Sign Out</span>
                   </button>
                 </>
               ) : (
                 <button
-                  className="text-left text-foreground hover:text-primary p-2 flex items-center"
-                  onClick={() => navigate('/signin')}
+                  onClick={() => handleNavClick('/signin')}
+                  className="w-full flex items-center space-x-3 px-4 py-3 text-left text-white bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 rounded-xl transition-all duration-300 shadow-lg"
                 >
-                  <User className="w-4 h-4 mr-2" />
-                  Sign In
+                  <User className="w-5 h-5" />
+                  <span className="font-medium">Sign In</span>
                 </button>
               )}
             </div>
