@@ -18,6 +18,7 @@ type AuthContextType = {
   signUp: (data: SignupData) => Promise<void>;
   signOut: () => Promise<void>;
   handleOAuthCallback: (token: string) => Promise<void>;
+  refreshUserData: () => Promise<void>;
   error: string | null;
   setError: (error: string | null) => void;
 };
@@ -32,6 +33,7 @@ const AuthContext = createContext<AuthContextType>({
   signUp: async () => {},
   signOut: async () => {},
   handleOAuthCallback: async () => {},
+  refreshUserData: async () => {},
   error: null,
   setError: () => {},
 });
@@ -111,24 +113,54 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         throw new Error("Invalid user data from authentication server");
       }
       
-      // Create user object based on backend response
-      const user = {
-        id: userData.id,
-        name: userData.name,
-        email: userData.email,
-        profileImage: userData.profileImage || "/placeholder.svg",
-        role: userData.role,
-        phone: userData.phone || null,
-        location: userData.location || null,
-        username: userData.username || (userData.email ? userData.email.split('@')[0] : ''),
-        displayName: userData.displayName || userData.name
-      };
+      // After successful login, fetch the complete user object by username
+      // to ensure we have the latest data (including profileImage)
+      try {
+        const completeUserData = await userApi.getUserByUsername(userData.username || username);
+        console.info("Fetched complete user data after login:", completeUserData);
+        
+        // Use the complete user data if available, otherwise fall back to login response
+        const finalUserData = completeUserData || userData;
+        
+        // Create user object based on complete backend response
+        const user = {
+          id: finalUserData.id,
+          name: finalUserData.name,
+          email: finalUserData.email,
+          profileImage: finalUserData.profileImage || "/placeholder.svg",
+          role: finalUserData.role,
+          phone: finalUserData.phone || null,
+          location: finalUserData.location || null,
+          username: finalUserData.username || (finalUserData.email ? finalUserData.email.split('@')[0] : ''),
+          displayName: finalUserData.displayName || finalUserData.name
+        };
+        
+        setCurrentUser(user);
+        localStorage.setItem("user", JSON.stringify(user));
+        
+        console.info("User logged in successfully with complete profile data:", username);
+      } catch (fetchError) {
+        console.warn("Failed to fetch complete user data, using login response:", fetchError);
+        
+        // Fall back to original user creation if fetching complete data fails
+        const user = {
+          id: userData.id,
+          name: userData.name,
+          email: userData.email,
+          profileImage: userData.profileImage || "/placeholder.svg",
+          role: userData.role,
+          phone: userData.phone || null,
+          location: userData.location || null,
+          username: userData.username || (userData.email ? userData.email.split('@')[0] : ''),
+          displayName: userData.displayName || userData.name
+        };
+        
+        setCurrentUser(user);
+        localStorage.setItem("user", JSON.stringify(user));
+        
+        console.info("User logged in successfully with basic data:", username);
+      }
       
-      setCurrentUser(user);
-      localStorage.setItem("user", JSON.stringify(user));
-      
-      // Log successful login
-      console.info("User logged in successfully:", username);
     } catch (err: any) {
       // Handle specific error types
       if (err.message.includes('404') || err.message.includes('User not found')) {
@@ -261,24 +293,56 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         throw new Error("Invalid user data from authentication server");
       }
       
-      // Create user object (same logic as signIn function)
-      const user = {
-        id: userData.id,
-        name: userData.name,
-        email: userData.email,
-        profileImage: userData.profileImage || "/placeholder.svg",
-        role: userData.role,
-        phone: userData.phone || null,
-        location: userData.location || null,
-        username: userData.username || (userData.email ? userData.email.split('@')[0] : ''),
-        displayName: userData.displayName || userData.name
-      };
-      
-      // Store user in context and localStorage
-      setCurrentUser(user);
-      localStorage.setItem("user", JSON.stringify(user));
-      
-      console.log('✅ OAuth authentication successful:', user.username || user.email);
+      // After successful OAuth validation, fetch the complete user object by username
+      // to ensure we have the latest data (including profileImage)
+      try {
+        const username = userData.username || (userData.email ? userData.email.split('@')[0] : '');
+        const completeUserData = await userApi.getUserByUsername(username);
+        console.info("Fetched complete user data after OAuth:", completeUserData);
+        
+        // Use the complete user data if available, otherwise fall back to token response
+        const finalUserData = completeUserData || userData;
+        
+        // Create user object (same logic as signIn function)
+        const user = {
+          id: finalUserData.id,
+          name: finalUserData.name,
+          email: finalUserData.email,
+          profileImage: finalUserData.profileImage || "/placeholder.svg",
+          role: finalUserData.role,
+          phone: finalUserData.phone || null,
+          location: finalUserData.location || null,
+          username: finalUserData.username || (finalUserData.email ? finalUserData.email.split('@')[0] : ''),
+          displayName: finalUserData.displayName || finalUserData.name
+        };
+        
+        // Store user in context and localStorage
+        setCurrentUser(user);
+        localStorage.setItem("user", JSON.stringify(user));
+        
+        console.log('✅ OAuth authentication successful with complete profile data:', user.username || user.email);
+      } catch (fetchError) {
+        console.warn("Failed to fetch complete user data after OAuth, using token response:", fetchError);
+        
+        // Fall back to original user creation if fetching complete data fails
+        const user = {
+          id: userData.id,
+          name: userData.name,
+          email: userData.email,
+          profileImage: userData.profileImage || "/placeholder.svg",
+          role: userData.role,
+          phone: userData.phone || null,
+          location: userData.location || null,
+          username: userData.username || (userData.email ? userData.email.split('@')[0] : ''),
+          displayName: userData.displayName || userData.name
+        };
+        
+        // Store user in context and localStorage
+        setCurrentUser(user);
+        localStorage.setItem("user", JSON.stringify(user));
+        
+        console.log('✅ OAuth authentication successful with basic data:', user.username || user.email);
+      }
       
     } catch (err: any) {
       setError(err.message || "Failed to authenticate. Please try again.");
@@ -287,6 +351,44 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setIsLoading(false);
     }
   };
+
+  // Refresh current user data from backend
+  const refreshUserData = async () => {
+    if (!currentUser?.username) {
+      console.warn("Cannot refresh user data: no current user or username");
+      return;
+    }
+
+    try {
+      console.info("Refreshing user data for:", currentUser.username);
+      
+      const completeUserData = await userApi.getUserByUsername(currentUser.username);
+      
+      if (completeUserData) {
+        // Create updated user object
+        const updatedUser = {
+          id: completeUserData.id,
+          name: completeUserData.name,
+          email: completeUserData.email,
+          profileImage: completeUserData.profileImage || "/placeholder.svg",
+          role: completeUserData.role,
+          phone: completeUserData.phone || null,
+          location: completeUserData.location || null,
+          username: completeUserData.username || currentUser.username,
+          displayName: completeUserData.displayName || completeUserData.name
+        };
+        
+        setCurrentUser(updatedUser);
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+        
+        console.info("User data refreshed successfully");
+      }
+    } catch (err: any) {
+      console.error("Failed to refresh user data:", err);
+      // Don't show error to user for refresh failures, just log it
+    }
+  };
+
   // Context value
   const value = {
     currentUser,
@@ -297,6 +399,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     signUp,
     signOut,
     handleOAuthCallback,
+    refreshUserData,
     error,
     setError
   };

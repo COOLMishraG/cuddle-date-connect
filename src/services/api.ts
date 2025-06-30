@@ -93,30 +93,7 @@ export const userApi = {
     }
   },
 
-  // Upload profile photo
-  uploadProfilePhoto: async (userId: string, photoFile: File) => {
-    try {
-      const formData = new FormData();
-      formData.append('profileImage', photoFile);
-      
-      const response = await fetch(`${API_BASE_URL}/users/${userId}/profile-photo`, {
-        method: 'POST',
-        body: formData,
-        credentials: 'include',
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to upload profile photo');
-      }
-      
-      return await response.json();
-    } catch (error) {
-      console.error('Error uploading photo:', error);
-      throw error;
-    }
-  },
-  
+ 
   // Get user profile
   getUserProfile: async (userId: string) => {
     try {
@@ -524,6 +501,55 @@ export const authApi = {
       }
     } catch (error) {
       console.error('Token validation error:', error);
+      throw error;
+    }
+  }
+};
+
+// Match-related API calls
+export const matchApi = {
+  // Get pet matches for breeding
+  getPetMatches: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/pets/match`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to get pet matches');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error getting pet matches:', error);
+      throw error;
+    }
+  },
+  
+  // Get matches for a specific pet
+  getPetMatchesById: async (petId: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/pets/${petId}/matches`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to get matches for pet');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error getting pet matches by ID:', error);
       throw error;
     }
   }

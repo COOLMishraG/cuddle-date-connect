@@ -19,12 +19,11 @@ import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { petApi } from '@/services/api';
 import { uploadImageToCloudinary, validateImageFile } from '@/services/cloudinary';
-
-// Types based on your backend Pet entity
-export type PetGender = 'MALE' | 'FEMALE';
+import { PetGender, AnimalType } from '@/types/pet';
 
 export type PetFormData = {
   name: string;
+  animal: AnimalType;
   breed: string;
   age: number;
   gender: PetGender;
@@ -50,9 +49,10 @@ const AddPetForm = ({ open, onClose, onPetAdded, existingPet }: AddPetFormProps)
   // Initial form data
   const initialFormData: PetFormData = {
     name: existingPet?.name || '',
+    animal: existingPet?.animal || AnimalType.DOG,
     breed: existingPet?.breed || '',
     age: existingPet?.age || 0,
-    gender: existingPet?.gender || 'MALE',
+    gender: existingPet?.gender || PetGender.MALE,
     vaccinated: existingPet?.vaccinated || false,
     description: existingPet?.description || '',
     location: existingPet?.location || currentUser?.location || '',
@@ -162,6 +162,7 @@ const AddPetForm = ({ open, onClose, onPetAdded, existingPet }: AddPetFormProps)
       // Prepare pet data for backend
       const petData = {
         name: formData.name,
+        animal: formData.animal,
         breed: formData.breed,
         age: formData.age,
         gender: formData.gender,
@@ -284,6 +285,28 @@ const AddPetForm = ({ open, onClose, onPetAdded, existingPet }: AddPetFormProps)
             </div>
             
             <div className="space-y-2">
+              <Label htmlFor="animal">Animal Type <span className="text-burgundy">*</span></Label>
+              <Select
+                defaultValue={formData.animal}
+                onValueChange={(value) => handleSelectChange('animal', value)}
+              >
+                <SelectTrigger id="animal">
+                  <SelectValue placeholder="Select animal type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={AnimalType.DOG}>Dog</SelectItem>
+                  <SelectItem value={AnimalType.CAT}>Cat</SelectItem>
+                  <SelectItem value={AnimalType.BIRD}>Bird</SelectItem>
+                  <SelectItem value={AnimalType.RABBIT}>Rabbit</SelectItem>
+                  <SelectItem value={AnimalType.HAMSTER}>Hamster</SelectItem>
+                  <SelectItem value={AnimalType.FISH}>Fish</SelectItem>
+                  <SelectItem value={AnimalType.REPTILE}>Reptile</SelectItem>
+                  <SelectItem value={AnimalType.OTHER}>Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
               <Label htmlFor="breed">Breed <span className="text-burgundy">*</span></Label>
               <Input
                 id="breed"
@@ -319,8 +342,8 @@ const AddPetForm = ({ open, onClose, onPetAdded, existingPet }: AddPetFormProps)
                   <SelectValue placeholder="Select gender" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="MALE">Male</SelectItem>
-                  <SelectItem value="FEMALE">Female</SelectItem>
+                  <SelectItem value={PetGender.MALE}>Male</SelectItem>
+                  <SelectItem value={PetGender.FEMALE}>Female</SelectItem>
                 </SelectContent>
               </Select>
             </div>

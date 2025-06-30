@@ -3,11 +3,14 @@ import { useState } from 'react';
 import { Heart, User, MapPin, Calendar, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { AnimalType, PetGender } from '@/types/pet';
+import { formatAnimalType, formatGender } from '@/utils/petUtils';
 
 interface PetCardProps {
   pet: {
     id: string;
     name: string;
+    animal: AnimalType;
     breed: string;
     age: number;
     location: string;
@@ -15,7 +18,7 @@ interface PetCardProps {
     image: string;
     imageUrl?: string; // Cloud-based image URL
     description: string;
-    gender: string;
+    gender: PetGender;
     vaccinated: boolean;
   };
   onSwipe?: (direction: 'left' | 'right', petId: string) => void;
@@ -53,7 +56,7 @@ const PetCard = ({ pet, onSwipe }: PetCardProps) => {
         {/* Pet Info Overlay */}
         <div className="absolute bottom-4 left-4 right-4 text-soft-white">
           <h3 className="text-2xl font-bold mb-1 fredoka">{pet.name}</h3>
-          <p className="text-sm opacity-90">{pet.breed} • {pet.age} years old</p>
+          <p className="text-sm opacity-90">{pet.breed} • {pet.age} years old • {pet.animal}</p>
           <div className="flex items-center mt-2 text-sm opacity-80">
             <MapPin className="w-4 h-4 mr-1" />
             <span>{pet.location}</span>
@@ -76,7 +79,7 @@ const PetCard = ({ pet, onSwipe }: PetCardProps) => {
           </div>
           <div className="flex items-center text-sm text-deep-rose">
             <Calendar className="w-4 h-4 mr-1" />
-            <span>{pet.gender}</span>
+            <span>{pet.gender === PetGender.FEMALE ? 'Female' : 'Male'}</span>
           </div>
         </div>
 
