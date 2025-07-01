@@ -11,22 +11,21 @@ const NotFound = () => {
     );
   }, [location.pathname]);
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#FBE7E7] relative overflow-hidden">
-      {/* Floating Background Shapes */}
-      <div className="floating-shape absolute top-[15%] left-[12%] text-4xl float-1">🙀</div>
-      <div className="floating-shape absolute top-[25%] right-[15%] text-3xl float-2">❓</div>
-      <div className="floating-shape absolute bottom-[25%] left-[18%] text-5xl float-3">🐾</div>
-      <div className="floating-shape absolute top-[45%] left-[25%] text-2xl float-1" style={{ animationDelay: '2s' }}>🔍</div>
-      <div className="floating-shape absolute bottom-[30%] right-[22%] text-3xl float-2" style={{ animationDelay: '3s' }}>❤️</div>
-      <div className="floating-shape absolute top-[60%] right-[10%] text-4xl float-3" style={{ animationDelay: '1s' }}>🐶</div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 via-pink-50 to-purple-50 relative overflow-hidden">
+      {/* Modern Background Elements */}
+      <div className="absolute inset-0">
+        <div className="absolute top-20 left-20 w-80 h-80 bg-gradient-to-r from-red-300/20 to-pink-300/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 right-20 w-96 h-96 bg-gradient-to-r from-pink-300/20 to-purple-300/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+      </div>
 
-      <div className="romantic-card-accent p-8 text-center z-10">
-        <h1 className="text-6xl font-bold mb-4 fredoka text-burgundy">404</h1>
-        <p className="text-xl text-deep-rose mb-6">Oops! We couldn't find that page</p>
-        <p className="mb-8">The page you're looking for doesn't seem to exist.</p>
+      <div className="glass-card border-0 bg-white/40 backdrop-blur-lg p-12 text-center z-10 max-w-md mx-4">
+        <div className="text-8xl mb-6">🙀</div>
+        <h1 className="text-6xl font-bold mb-4 bg-gradient-to-r from-red-600 to-purple-600 bg-clip-text text-transparent">404</h1>
+        <p className="text-xl text-gray-700 mb-6">Oops! We couldn't find that page</p>
+        <p className="text-gray-600 mb-8">The page you're looking for seems to have wandered off like a curious pet!</p>
         <a 
           href="/" 
-          className="btn-gradient py-2 px-4 rounded-lg text-burgundy font-medium hover:shadow-md inline-block"
+          className="premium-gradient text-white py-3 px-8 rounded-lg font-medium hover:shadow-lg inline-block transition-all duration-300"
         >
           Return to Home
         </a>

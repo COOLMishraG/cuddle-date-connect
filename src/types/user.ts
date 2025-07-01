@@ -19,6 +19,13 @@ export interface User {
   bio?: string;
   createdAt?: Date;
   updatedAt?: Date;
+
+  // Vet-specific fields
+  specialty?: string;
+  experience?: string;
+  rating?: number;
+  verified?: boolean;
+  available?: boolean;
 }
 
 // Auth response type

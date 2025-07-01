@@ -1,5 +1,5 @@
 
-import Header from '@/components/Header';
+import Header from '../components/Header';
 import { Heart, Users, MessageSquare, Calendar, MapPin, Star } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -44,80 +44,88 @@ const Community = () => {
     }
   ];
   return (
-    <div className="min-h-screen bg-[#FBE7E7] relative overflow-hidden">
-      {/* Floating Background Shapes - Enhanced with more emojis */}
-      <div className="floating-shape absolute top-[7%] left-[15%] text-4xl float-1">💕</div>
-      <div className="floating-shape absolute top-[18%] right-[12%] text-3xl float-2">🐾</div>
-      <div className="floating-shape absolute bottom-[15%] left-[23%] text-5xl float-3">❤️</div>
-      <div className="floating-shape absolute top-[35%] left-[8%] text-2xl float-1" style={{ animationDelay: '2s' }}>🏠</div>
-      <div className="floating-shape absolute bottom-[35%] right-[15%] text-3xl float-2" style={{ animationDelay: '3s' }}>🐩</div>
-      <div className="floating-shape absolute top-[50%] right-[25%] text-4xl float-3" style={{ animationDelay: '1s' }}>💖</div>
-      <div className="floating-shape absolute bottom-[5%] left-[30%] text-2xl float-1" style={{ animationDelay: '4s' }}>🐕</div>
-
-      {/* Additional floating emojis for community page */}
-      <div className="floating-shape absolute top-[12%] left-[65%] text-3xl float-2" style={{ animationDelay: '1.5s' }}>👥</div>
-      <div className="floating-shape absolute top-[65%] left-[12%] text-2xl float-3" style={{ animationDelay: '2.5s' }}>💬</div>
-      <div className="floating-shape absolute bottom-[45%] left-[80%] text-4xl float-1" style={{ animationDelay: '3.5s' }}>🎉</div>
-      <div className="floating-shape absolute top-[80%] right-[45%] text-3xl float-2" style={{ animationDelay: '0.5s' }}>🤝</div>
-      <div className="floating-shape absolute top-[25%] left-[55%] text-2xl float-3" style={{ animationDelay: '4.5s' }}>📱</div>
-      <div className="floating-shape absolute bottom-[60%] right-[8%] text-5xl float-1" style={{ animationDelay: '1.8s' }}>💙</div>
-      <div className="floating-shape absolute top-[85%] left-[35%] text-3xl float-2" style={{ animationDelay: '3.2s' }}>🌟</div>
-      <div className="floating-shape absolute bottom-[8%] right-[60%] text-2xl float-3" style={{ animationDelay: '2.8s' }}>📅</div>
-      <div className="floating-shape absolute top-[22%] left-[42%] text-4xl float-1" style={{ animationDelay: '4.2s' }}>🏆</div>
-      <div className="floating-shape absolute bottom-[28%] left-[5%] text-3xl float-2" style={{ animationDelay: '0.8s' }}>🎈</div>
-      <div className="floating-shape absolute top-[62%] right-[35%] text-2xl float-3" style={{ animationDelay: '3.8s' }}>📸</div>
-      <div className="floating-shape absolute bottom-[50%] left-[58%] text-4xl float-1" style={{ animationDelay: '1.2s' }}>💜</div>
-      <div className="floating-shape absolute top-[75%] left-[75%] text-3xl float-2" style={{ animationDelay: '4.8s' }}>🎯</div>
-      <div className="floating-shape absolute top-[5%] left-[35%] text-2xl float-3" style={{ animationDelay: '2.2s' }}>🐰</div>
-      <div className="floating-shape absolute bottom-[20%] right-[5%] text-4xl float-1" style={{ animationDelay: '3.7s' }}>🐈‍⬛</div>
-      <div className="floating-shape absolute top-[45%] left-[25%] text-3xl float-2" style={{ animationDelay: '1.9s' }}>🌸</div>
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 relative overflow-hidden">
+      {/* Modern Background Elements */}
+      <div className="absolute inset-0">
+        <div className="absolute top-32 left-32 w-80 h-80 bg-gradient-to-r from-green-300/20 to-blue-300/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-32 right-32 w-96 h-96 bg-gradient-to-r from-blue-300/20 to-purple-300/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-1/3 left-1/3 w-72 h-72 bg-gradient-to-r from-purple-300/20 to-green-300/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '4s' }}></div>
+      </div>
 
       <Header />
-      <div className="container mx-auto px-4 py-8 relative z-10">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold fredoka text-foreground mb-4">Pet Community</h1>
-          <p className="text-muted-foreground">Connect with fellow pet lovers in your area</p>
+      
+      {/* Hero Section */}
+      <div className="relative z-10 pt-20 pb-12">
+        <div className="container mx-auto px-4 text-center">
+          <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-green-600 via-blue-600 to-purple-600 bg-clip-text text-transparent mb-6">
+            Pet Community
+          </h1>
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
+            Connect with fellow pet lovers, share experiences, and build lasting friendships in our vibrant community
+          </p>
         </div>
+      </div>
 
-        <div className="grid md:grid-cols-3 gap-6">
+      <div className="container mx-auto px-4 pb-16 relative z-10">
+
+        <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Feed */}
-          <div className="md:col-span-2 space-y-6">
-            <Card className="border border-border">
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="w-10 h-10 bg-primary rounded-full"></div>
+          <div className="lg:col-span-2 space-y-6">
+            {/* Create Post */}
+            <Card className="glass-card border-0 bg-white/40 backdrop-blur-lg">
+              <CardContent className="p-6">
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center">
+                    <Users className="w-6 h-6 text-white" />
+                  </div>
                   <input 
                     type="text" 
                     placeholder="Share something with the community..."
-                    className="flex-1 bg-secondary border border-border rounded-lg px-3 py-2"
+                    className="flex-1 bg-white/50 backdrop-blur-sm border border-white/30 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
                   />
-                  <Button className="btn-gradient">Post</Button>
+                  <Button className="premium-gradient text-white px-6 py-3 h-auto">
+                    Post ✨
+                  </Button>
                 </div>
               </CardContent>
             </Card>
 
+            {/* Posts */}
             {posts.map((post) => (
-              <Card key={post.id} className="border border-border">
-                <CardContent className="p-4">
-                  <div className="flex items-center space-x-3 mb-3">
-                    <img src={post.avatar} alt={post.author} className="w-10 h-10 rounded-full bg-secondary" />
+              <Card key={post.id} className="glass-card border-0 bg-white/40 backdrop-blur-lg hover:bg-white/50 transition-all duration-300">
+                <CardContent className="p-6">
+                  <div className="flex items-center space-x-4 mb-4">
+                    <img 
+                      src={`https://images.unsplash.com/photo-${post.id === '1' ? '1438761681033-6461ffad8d80' : '1507003211169-0a1dd7bf874e'}?w=150&h=150&fit=crop&auto=format`} 
+                      alt={post.author} 
+                      className="w-12 h-12 rounded-full object-cover border-2 border-white/50" 
+                    />
                     <div>
-                      <h4 className="font-semibold text-foreground">{post.author}</h4>
-                      <p className="text-xs text-muted-foreground">{post.timestamp}</p>
+                      <h4 className="font-bold text-gray-800">{post.author}</h4>
+                      <p className="text-sm text-gray-500">{post.timestamp}</p>
                     </div>
                   </div>
-                  <p className="text-foreground mb-3">{post.content}</p>
+                  
+                  <p className="text-gray-700 mb-4 leading-relaxed">{post.content}</p>
+                  
                   {post.image && (
-                    <img src={post.image} alt="Post" className="w-full h-48 object-cover rounded-lg mb-3" />
+                    <div className="mb-4 rounded-xl overflow-hidden">
+                      <img 
+                        src={`https://images.unsplash.com/photo-${post.id === '1' ? '1601758228041-aaa1dd29b6e1' : '1583337130417-3346a1be7dee'}?w=600&h=300&fit=crop&auto=format`} 
+                        alt="Post" 
+                        className="w-full h-64 object-cover hover:scale-105 transition-transform duration-300" 
+                      />
+                    </div>
                   )}
-                  <div className="flex items-center space-x-4 text-sm">
-                    <button className="flex items-center space-x-1 text-muted-foreground hover:text-accent">
-                      <Heart className="w-4 h-4" />
-                      <span>{post.likes}</span>
+                  
+                  <div className="flex items-center space-x-6 text-sm">
+                    <button className="flex items-center space-x-2 text-gray-600 hover:text-red-500 transition-colors group">
+                      <Heart className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                      <span className="font-medium">{post.likes}</span>
                     </button>
-                    <button className="flex items-center space-x-1 text-muted-foreground hover:text-accent">
-                      <MessageSquare className="w-4 h-4" />
-                      <span>{post.comments}</span>
+                    <button className="flex items-center space-x-2 text-gray-600 hover:text-blue-500 transition-colors group">
+                      <MessageSquare className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                      <span className="font-medium">{post.comments}</span>
                     </button>
                   </div>
                 </CardContent>
@@ -127,40 +135,77 @@ const Community = () => {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            <Card className="border border-border">
-              <CardContent className="p-4">
-                <h3 className="font-bold text-lg fredoka mb-4">Upcoming Events</h3>
-                <div className="space-y-3">
+            {/* Upcoming Events */}
+            <Card className="glass-card border-0 bg-white/40 backdrop-blur-lg">
+              <CardContent className="p-6">
+                <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                  <Calendar className="w-5 h-5 mr-2 text-blue-500" />
+                  Upcoming Events
+                </h3>
+                <div className="space-y-4">
                   {events.map((event) => (
-                    <div key={event.id} className="border-b border-border pb-3 last:border-b-0">
-                      <h4 className="font-semibold text-foreground">{event.title}</h4>
-                      <div className="flex items-center text-xs text-muted-foreground mt-1">
-                        <Calendar className="w-3 h-3 mr-1" />
-                        {event.date}
+                    <div key={event.id} className="p-4 bg-white/50 rounded-xl border border-white/30 hover:bg-white/60 transition-colors">
+                      <h4 className="font-bold text-gray-800 mb-2">{event.title}</h4>
+                      <div className="space-y-1 text-sm text-gray-600">
+                        <div className="flex items-center">
+                          <Calendar className="w-4 h-4 mr-2 text-green-500" />
+                          {event.date}
+                        </div>
+                        <div className="flex items-center">
+                          <MapPin className="w-4 h-4 mr-2 text-red-500" />
+                          {event.location}
+                        </div>
+                        <div className="flex items-center">
+                          <Users className="w-4 h-4 mr-2 text-blue-500" />
+                          {event.attendees} attending
+                        </div>
                       </div>
-                      <div className="flex items-center text-xs text-muted-foreground">
-                        <MapPin className="w-3 h-3 mr-1" />
-                        {event.location}
-                      </div>
-                      <div className="flex items-center text-xs text-muted-foreground">
-                        <Users className="w-3 h-3 mr-1" />
-                        {event.attendees} attending
-                      </div>
+                      <Button size="sm" className="w-full mt-3 bg-gradient-to-r from-green-500 to-blue-500 text-white hover:shadow-lg transition-all">
+                        Join Event
+                      </Button>
                     </div>
                   ))}
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="border border-border">
-              <CardContent className="p-4">
-                <h3 className="font-bold text-lg fredoka mb-4">Popular Topics</h3>
-                <div className="flex flex-wrap gap-2">
-                  {['Pet Training', 'Health Tips', 'Local Meetups', 'Breed Info'].map((topic) => (
-                    <span key={topic} className="bg-secondary text-foreground px-3 py-1 rounded-full text-xs">
+            {/* Popular Topics */}
+            <Card className="glass-card border-0 bg-white/40 backdrop-blur-lg">
+              <CardContent className="p-6">
+                <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                  <Star className="w-5 h-5 mr-2 text-yellow-500" />
+                  Popular Topics
+                </h3>
+                <div className="flex flex-wrap gap-3">
+                  {['Pet Training', 'Health Tips', 'Local Meetups', 'Breed Info', 'Nutrition', 'Grooming'].map((topic) => (
+                    <span 
+                      key={topic} 
+                      className="bg-gradient-to-r from-purple-400 to-pink-400 text-white px-4 py-2 rounded-full text-sm font-medium hover:shadow-lg transition-all cursor-pointer hover:scale-105"
+                    >
                       {topic}
                     </span>
                   ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Community Stats */}
+            <Card className="glass-card border-0 bg-white/40 backdrop-blur-lg">
+              <CardContent className="p-6">
+                <h3 className="text-xl font-bold text-gray-800 mb-6">Community Stats</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600">Total Members</span>
+                    <span className="font-bold text-blue-600">2,347</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600">Posts Today</span>
+                    <span className="font-bold text-green-600">127</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600">Active Events</span>
+                    <span className="font-bold text-purple-600">8</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>

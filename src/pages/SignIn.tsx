@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Globe, Heart, User, Mail, Lock, Check, Phone, MapPin } from "lucide-react";
+import { Globe, Heart, User, Mail, Lock, Check, Phone, MapPin, Shield, Users, Star } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth, SignupData } from "@/contexts/AuthContext";
 import { useState, useEffect } from "react";
@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
-import Header from '@/components/Header';
+import Header from '../components/Header';
 
 const SignIn = () => {
   const navigate = useNavigate();
@@ -147,58 +147,145 @@ const SignIn = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FBE7E7] flex items-center justify-center p-4">
-      {/* Floating Background Shapes - Enhanced with more emojis */}
-      <div className="floating-shape absolute top-[5%] left-[5%] text-4xl float-1">💕</div>
-      <div className="floating-shape absolute top-[10%] right-[8%] text-3xl float-2">🐾</div>
-      <div className="floating-shape absolute bottom-[20%] left-[7%] text-5xl float-3">❤️</div>
-      <div className="floating-shape absolute top-[25%] left-[33%] text-2xl float-1" style={{ animationDelay: '2s' }}>🏠</div>
-      <div className="floating-shape absolute bottom-[25%] right-[25%] text-3xl float-2" style={{ animationDelay: '3s' }}>🩺</div>
-      <div className="floating-shape absolute top-[40%] right-[5%] text-4xl float-3" style={{ animationDelay: '1s' }}>💖</div>
-      <div className="floating-shape absolute bottom-[10%] left-[50%] text-2xl float-1" style={{ animationDelay: '4s' }}>🐕</div>
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 relative overflow-hidden">
+      {/* Modern Background Elements */}
+      <div className="absolute inset-0">
+        <div className="absolute top-20 left-20 w-80 h-80 bg-gradient-to-r from-indigo-300/20 to-purple-300/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 right-20 w-96 h-96 bg-gradient-to-r from-purple-300/20 to-pink-300/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-gradient-to-r from-pink-300/20 to-indigo-300/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '4s' }}></div>
+      </div>
+
+      <Header />
       
-      {/* Additional floating emojis */}
-      <div className="floating-shape absolute top-[15%] left-[75%] text-3xl float-2" style={{ animationDelay: '1.5s' }}>🐱</div>
-      <div className="floating-shape absolute top-[60%] left-[15%] text-2xl float-3" style={{ animationDelay: '2.5s' }}>🦴</div>
-      <div className="floating-shape absolute bottom-[40%] left-[85%] text-4xl float-1" style={{ animationDelay: '3.5s' }}>🎾</div>
-      <div className="floating-shape absolute top-[75%] right-[45%] text-3xl float-2" style={{ animationDelay: '0.5s' }}>🐕‍🦺</div>
-      <div className="floating-shape absolute top-[30%] left-[65%] text-2xl float-3" style={{ animationDelay: '4.5s' }}>🦮</div>
-      <div className="floating-shape absolute bottom-[60%] right-[15%] text-5xl float-1" style={{ animationDelay: '1.8s' }}>💙</div>
-      <div className="floating-shape absolute top-[85%] left-[25%] text-3xl float-2" style={{ animationDelay: '3.2s' }}>🐾</div>
-      <div className="floating-shape absolute bottom-[5%] right-[65%] text-2xl float-3" style={{ animationDelay: '2.8s' }}>🍖</div>
-      <div className="floating-shape absolute top-[20%] left-[45%] text-4xl float-1" style={{ animationDelay: '4.2s' }}>🧸</div>
-      <div className="floating-shape absolute bottom-[35%] left-[25%] text-3xl float-2" style={{ animationDelay: '0.8s' }}>🎈</div>
-      <div className="floating-shape absolute top-[55%] right-[35%] text-2xl float-3" style={{ animationDelay: '3.8s' }}>🏆</div>
-      <div className="floating-shape absolute bottom-[50%] left-[55%] text-4xl float-1" style={{ animationDelay: '1.2s' }}>🌟</div>
-      <div className="floating-shape absolute top-[70%] left-[80%] text-3xl float-2" style={{ animationDelay: '4.8s' }}>🦊</div>
-      
-      <Card className="romantic-card-accent w-full max-w-md p-6 relative z-10">
-        <div className="mb-6 text-center">
-          <div className="flex justify-center mb-4">
-            <Heart className="h-12 w-12 text-burgundy" />
-          </div>
-          <h1 className="text-3xl font-bold fredoka mb-2 text-burgundy">Welcome to PetMatch</h1>
-          <p className="text-deep-rose">Join the pet dating adventure</p>
-        </div>
+      <div className="pt-24 pb-12 px-4 relative z-10">
+        <div className="container mx-auto max-w-6xl">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            
+            {/* Left Side - Welcome Content */}
+            <div className="space-y-8">
+              <div className="text-center lg:text-left">
+                <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
+                  Join PetMatch Today
+                </h1>
+                <p className="text-xl text-gray-600 mb-8">
+                  Connect with a loving community of pet enthusiasts and discover amazing services for your furry friends.
+                </p>
+              </div>
+
+              {/* Benefits */}
+              <div className="space-y-6">
+                <div className="flex items-start space-x-4">
+                  <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Heart className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-2">Find Perfect Matches</h3>
+                    <p className="text-gray-600">Connect with compatible pets for breeding, playdates, and lifelong friendships.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-4">
+                  <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Shield className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-2">Trusted Pet Sitters</h3>
+                    <p className="text-gray-600">Book verified, professional pet sitters who treat your pets like family.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-4">
+                  <div className="w-12 h-12 bg-gradient-to-r from-pink-500 to-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Users className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-2">Expert Veterinary Care</h3>
+                    <p className="text-gray-600">Access certified veterinarians and emergency care services 24/7.</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Stats */}
+              <div className="grid grid-cols-3 gap-6 pt-8">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-indigo-600">50K+</div>
+                  <div className="text-sm text-gray-600">Happy Pets</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-purple-600">15K+</div>
+                  <div className="text-sm text-gray-600">Pet Sitters</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-pink-600">1K+</div>
+                  <div className="text-sm text-gray-600">Veterinarians</div>
+                </div>
+              </div>
+
+              {/* Testimonial */}
+              <Card className="glass-card border-0 bg-white/40 backdrop-blur-lg p-6">
+                <div className="flex items-start space-x-4">
+                  <img 
+                    src="https://api.dicebear.com/7.x/avataaars/svg?seed=SarahTestimonial&backgroundColor=ffd93d&clothingColor=65c9ff" 
+                    alt="Sarah M."
+                    className="w-12 h-12 rounded-full object-cover bg-white p-1"
+                  />
+                  <div>
+                    <p className="text-gray-700 italic mb-2">"PetMatch helped me find the perfect sitter for my Golden Retriever. The peace of mind is invaluable!"</p>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm font-medium text-gray-800">Sarah M.</span>
+                      <div className="flex text-yellow-400">
+                        {[...Array(5)].map((_, i) => (
+                          <Star key={i} className="w-4 h-4 fill-current" />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            </div>
+
+            {/* Right Side - Sign In Form */}
+            <div className="flex justify-center lg:justify-end">
+              <Card className="glass-card border-0 bg-white/40 backdrop-blur-lg w-full max-w-md p-8 shadow-xl">
+                <div className="mb-8 text-center">
+                  <div className="w-16 h-16 mx-auto mb-4 premium-gradient rounded-2xl flex items-center justify-center">
+                    <Heart className="w-8 h-8 text-white" />
+                  </div>
+                  <h2 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
+                    Welcome Back
+                  </h2>
+                  <p className="text-gray-600">Sign in to continue your pet care journey</p>
+                </div>
 
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "signin" | "signup")}>
-          <TabsList className="grid grid-cols-2 mb-6 w-full">
-            <TabsTrigger value="signin" className="data-[state=active]:bg-burgundy data-[state=active]:text-white">Sign In</TabsTrigger>
-            <TabsTrigger value="signup" className="data-[state=active]:bg-burgundy data-[state=active]:text-white">Sign Up</TabsTrigger>
+          <TabsList className="grid grid-cols-2 mb-6 w-full bg-white/50 backdrop-blur-sm">
+            <TabsTrigger 
+              value="signin" 
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg transition-all duration-300"
+            >
+              Sign In
+            </TabsTrigger>
+            <TabsTrigger 
+              value="signup" 
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-600 data-[state=active]:text-white rounded-lg transition-all duration-300"
+            >
+              Sign Up
+            </TabsTrigger>
           </TabsList>
           
           {/* Sign In Form */}
           <TabsContent value="signin">
             {error && (
-              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 text-sm">
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-4 text-sm backdrop-blur-sm">
                 {error}
               </div>
             )}
             
-            <form onSubmit={handleSignIn} className="space-y-4">              <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
+            <form onSubmit={handleSignIn} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="username" className="text-gray-700 font-medium">Username</Label>
                 <div className="relative">
-                  <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input 
                     id="username"
                     name="username"
@@ -206,16 +293,16 @@ const SignIn = () => {
                     placeholder="Your username"
                     value={signinData.username}
                     onChange={handleSignInChange}
-                    className="pl-10"
+                    className="pl-10 modern-input border-0 focus:ring-2 focus:ring-indigo-500/50"
                     required
                   />
                 </div>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password" className="text-gray-700 font-medium">Password</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input 
                     id="password"
                     name="password"
@@ -223,7 +310,7 @@ const SignIn = () => {
                     placeholder="••••••••"
                     value={signinData.password}
                     onChange={handleSignInChange}
-                    className="pl-10"
+                    className="pl-10 modern-input border-0 focus:ring-2 focus:ring-indigo-500/50"
                     required
                   />
                 </div>
@@ -231,7 +318,7 @@ const SignIn = () => {
               
               <Button 
                 type="submit" 
-                className="w-full bg-burgundy hover:bg-deep-rose text-white"
+                className="w-full premium-gradient text-white hover:shadow-lg transition-all duration-300"
                 disabled={isLoading}
               >
                 {isLoading ? "Signing In..." : "Sign In"}
@@ -239,10 +326,10 @@ const SignIn = () => {
               
               <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">
-                  <Separator className="w-full" />
+                  <Separator className="w-full bg-white/30" />
                 </div>
                 <div className="relative flex justify-center">
-                  <span className="bg-card px-2 text-xs text-muted-foreground">OR</span>
+                  <span className="bg-white/50 backdrop-blur-sm px-3 py-1 text-xs text-gray-500 rounded-full">OR</span>
                 </div>
               </div>
               
@@ -250,7 +337,7 @@ const SignIn = () => {
                 onClick={handleGoogleSignIn}
                 type="button"
                 disabled={isLoading}
-                className="w-full flex items-center justify-center gap-2 bg-white hover:bg-gray-100 text-black font-medium py-3 px-4 rounded-lg border border-gray-300"
+                className="w-full flex items-center justify-center gap-2 bg-white/80 hover:bg-white text-gray-700 font-medium py-3 px-4 rounded-xl border border-gray-200 backdrop-blur-sm transition-all duration-300"
               >
                 <Globe className="w-5 h-5" />
                 {isLoading ? "Signing in..." : "Sign in with Google"}
@@ -261,54 +348,54 @@ const SignIn = () => {
           {/* Sign Up Form */}
           <TabsContent value="signup">
             {error && (
-              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 text-sm">
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-4 text-sm backdrop-blur-sm">
                 {error}
               </div>
             )}
             
             <form onSubmit={handleSignUp} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="signup-name">
-                  Full Name <span className="text-burgundy">*</span>
+                <Label htmlFor="signup-name" className="text-gray-700 font-medium">
+                  Full Name <span className="text-red-500">*</span>
                 </Label>
                 <div className="relative">
-                  <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input 
                     id="signup-name"
                     name="name"
                     placeholder="Your Name"
                     value={signupData.name}
                     onChange={handleSignUpChange}
-                    className="pl-10"
+                    className="pl-10 modern-input border-0 focus:ring-2 focus:ring-indigo-500/50"
                     required
                   />
                 </div>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="signup-username">
-                  Username <span className="text-burgundy">*</span>
+                <Label htmlFor="signup-username" className="text-gray-700 font-medium">
+                  Username <span className="text-red-500">*</span>
                 </Label>
                 <div className="relative">
-                  <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input 
                     id="signup-username"
                     name="username"
                     placeholder="Choose a username"
                     value={signupData.username}
                     onChange={handleSignUpChange}
-                    className="pl-10"
+                    className="pl-10 modern-input border-0 focus:ring-2 focus:ring-indigo-500/50"
                     required
                   />
                 </div>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="signup-email">
-                  Email <span className="text-burgundy">*</span>
+                <Label htmlFor="signup-email" className="text-gray-700 font-medium">
+                  Email <span className="text-red-500">*</span>
                 </Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input 
                     id="signup-email"
                     name="email"
@@ -316,18 +403,18 @@ const SignIn = () => {
                     placeholder="your.email@example.com"
                     value={signupData.email}
                     onChange={handleSignUpChange}
-                    className="pl-10"
+                    className="pl-10 modern-input border-0 focus:ring-2 focus:ring-indigo-500/50"
                     required
                   />
                 </div>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="signup-password">
-                  Password <span className="text-burgundy">*</span>
+                <Label htmlFor="signup-password" className="text-gray-700 font-medium">
+                  Password <span className="text-red-500">*</span>
                 </Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input 
                     id="signup-password"
                     name="password"
@@ -335,25 +422,25 @@ const SignIn = () => {
                     placeholder="Minimum 8 characters"
                     value={signupData.password}
                     onChange={handleSignUpChange}
-                    className="pl-10"
+                    className="pl-10 modern-input border-0 focus:ring-2 focus:ring-indigo-500/50"
                     required
                   />
                 </div>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="signup-role">
-                  Role <span className="text-burgundy">*</span>
+                <Label htmlFor="signup-role" className="text-gray-700 font-medium">
+                  Role <span className="text-red-500">*</span>
                 </Label>
                 <Select 
                   defaultValue={signupData.role} 
                   onValueChange={handleRoleChange}
                   required
                 >
-                  <SelectTrigger id="signup-role">
+                  <SelectTrigger id="signup-role" className="modern-input border-0 focus:ring-2 focus:ring-indigo-500/50">
                     <SelectValue placeholder="Select role" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-white/95 backdrop-blur-lg border border-white/20">
                     <SelectItem value="OWNER">Pet Owner</SelectItem>
                     <SelectItem value="SITTER">Pet Sitter</SelectItem>
                     <SelectItem value="VET">Veterinarian</SelectItem>
@@ -363,31 +450,31 @@ const SignIn = () => {
               
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="signup-phone">Phone (Optional)</Label>
+                  <Label htmlFor="signup-phone" className="text-gray-700 font-medium">Phone (Optional)</Label>
                   <div className="relative">
-                    <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <Input 
                       id="signup-phone"
                       name="phone"
                       placeholder="Your Phone Number"
                       value={signupData.phone}
                       onChange={handleSignUpChange}
-                      className="pl-10"
+                      className="pl-10 modern-input border-0 focus:ring-2 focus:ring-indigo-500/50"
                     />
                   </div>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="signup-location">Location (Optional)</Label>
+                  <Label htmlFor="signup-location" className="text-gray-700 font-medium">Location (Optional)</Label>
                   <div className="relative">
-                    <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <Input 
                       id="signup-location"
                       name="location"
                       placeholder="City, Country"
                       value={signupData.location}
                       onChange={handleSignUpChange}
-                      className="pl-10"
+                      className="pl-10 modern-input border-0 focus:ring-2 focus:ring-indigo-500/50"
                     />
                   </div>
                 </div>
@@ -395,7 +482,7 @@ const SignIn = () => {
               
               <Button 
                 type="submit" 
-                className="w-full bg-burgundy hover:bg-deep-rose text-white"
+                className="w-full premium-gradient text-white hover:shadow-lg transition-all duration-300"
                 disabled={isLoading}
               >
                 {isLoading ? "Creating Account..." : "Create Account"}
@@ -403,10 +490,10 @@ const SignIn = () => {
               
               <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">
-                  <Separator className="w-full" />
+                  <Separator className="w-full bg-white/30" />
                 </div>
                 <div className="relative flex justify-center">
-                  <span className="bg-card px-2 text-xs text-muted-foreground">OR</span>
+                  <span className="bg-white/50 backdrop-blur-sm px-3 py-1 text-xs text-gray-500 rounded-full">OR</span>
                 </div>
               </div>
               
@@ -414,7 +501,7 @@ const SignIn = () => {
                 onClick={handleGoogleSignIn}
                 type="button"
                 disabled={isLoading}
-                className="w-full flex items-center justify-center gap-2 bg-white hover:bg-gray-100 text-black font-medium py-3 px-4 rounded-lg border border-gray-300"
+                className="w-full flex items-center justify-center gap-2 bg-white/80 hover:bg-white text-gray-700 font-medium py-3 px-4 rounded-xl border border-gray-200 backdrop-blur-sm transition-all duration-300"
               >
                 <Globe className="w-5 h-5" />
                 {isLoading ? "Signing up..." : "Continue with Google"}
@@ -423,17 +510,23 @@ const SignIn = () => {
           </TabsContent>
         </Tabs>
         
-        <div className="mt-6 text-center">          <p className="text-muted-foreground text-xs">
+        <div className="mt-6 text-center">
+          <p className="text-gray-500 text-xs">
             By signing in or signing up, you agree to our{" "}
-            <a href="#" className="text-burgundy hover:underline">
+            <a href="#" className="text-indigo-600 hover:text-indigo-700 hover:underline transition-colors">
               Terms of Service
             </a>{" "}
-            and{" "}            <a href="#" className="text-burgundy hover:underline">
+            and{" "}
+            <a href="#" className="text-indigo-600 hover:text-indigo-700 hover:underline transition-colors">
               Privacy Policy
             </a>
           </p>
         </div>
-      </Card>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

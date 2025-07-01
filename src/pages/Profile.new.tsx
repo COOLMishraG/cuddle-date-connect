@@ -4,11 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import { Heart, Loader2, Sparkles, Zap, Crown, Star, Trophy, Camera, Edit, Share2, Settings, User, MapPin, Mail, Phone, Calendar, Award, TrendingUp, Activity, Target, Clock, Users, DollarSign, Stethoscope, Shield, Bell, Briefcase } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Header from '../components/Header';
-import ProfileDashboard from '../components/ProfileDashboard';
 import AddPetForm from '@/components/AddPetForm';
 import useAuthGuard from '@/hooks/useAuthGuard';
 import { toast } from '@/hooks/use-toast';
 import { userApi, petApi } from '@/services/api';
+import { uploadImageToCloudinary } from '@/services/cloudinary';
 import { Pet } from '@/types/pet';
 import { UserRole } from '@/types/user';
 import { Card } from '@/components/ui/card';
@@ -24,7 +24,7 @@ import { Switch } from '@/components/ui/switch';
 
 const Profile = () => {  
   const navigate = useNavigate();
-  const { currentUser, signOut } = useAuth();
+  const { currentUser, signOut, refreshUserData } = useAuth();
   const { isLoading: authLoading } = useAuthGuard();
   const [pets, setPets] = useState<Pet[]>([]);
   const [isEditing, setIsEditing] = useState(false);
@@ -32,7 +32,7 @@ const Profile = () => {
   const [editingPet, setEditingPet] = useState<Pet | null>(null);
   const [profileImage, setProfileImage] = useState(currentUser?.profileImage || '/placeholder.svg');
   const [isLoading, setIsLoading] = useState(true);
-  const [activeSection, setActiveSection] = useState('personal');
+  const [activeSection, setActiveSection] = useState('overview');
   const [showConfetti, setShowConfetti] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   
@@ -54,7 +54,23 @@ const Profile = () => {
     availability: ''
   });
 
+  // Spectacular stats and achievements
+  const stats = [
+    { id: 'rating', label: 'Rating', value: '4.9', max: 5, icon: Star, color: 'text-yellow-500', bgColor: 'bg-yellow-100', gradient: 'from-yellow-400 to-orange-500' },
+    { id: 'bookings', label: 'Bookings', value: '127', max: 200, icon: Calendar, color: 'text-blue-500', bgColor: 'bg-blue-100', gradient: 'from-blue-400 to-cyan-500' },
+    { id: 'reviews', label: 'Reviews', value: '89', max: 100, icon: Heart, color: 'text-red-500', bgColor: 'bg-red-100', gradient: 'from-red-400 to-pink-500' },
+    { id: 'response', label: 'Response Rate', value: '98%', max: 100, icon: Zap, color: 'text-green-500', bgColor: 'bg-green-100', gradient: 'from-green-400 to-emerald-500' }
+  ];
+
+  const achievements = [
+    { title: 'Top Rated', icon: Trophy, color: 'text-yellow-600', bgGradient: 'from-yellow-400 to-orange-500', description: 'Consistently high ratings' },
+    { title: 'Quick Responder', icon: Zap, color: 'text-blue-600', bgGradient: 'from-blue-400 to-cyan-500', description: 'Lightning-fast responses' },
+    { title: 'Super Host', icon: Crown, color: 'text-purple-600', bgGradient: 'from-purple-400 to-pink-500', description: 'Exceptional hosting' },
+    { title: 'Rising Star', icon: TrendingUp, color: 'text-green-600', bgGradient: 'from-green-400 to-emerald-500', description: 'Rapidly improving' }
+  ];
+
   const sections = [
+    { id: 'overview', label: 'Overview', icon: Activity, color: 'indigo' },
     { id: 'personal', label: 'Personal Info', icon: User, color: 'blue' },
     { id: 'pets', label: 'My Pets', icon: Heart, color: 'pink' },
     { id: 'services', label: 'Services', icon: Briefcase, color: 'green' },
@@ -150,6 +166,54 @@ const Profile = () => {
     setShowAddPetForm(true);
   };
 
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Create a temporary URL for immediate preview
+    const tempUrl = URL.createObjectURL(file);
+    setProfileImage(tempUrl);
+
+    try {
+      const username = currentUser?.username;
+      if (!username) {
+        throw new Error('Username not found');
+      }
+
+      // Step 1: Upload image to Cloudinary
+      console.log('🔄 Uploading image to Cloudinary...');
+      const cloudinaryURI = await uploadImageToCloudinary(file, 'profile-photos');
+      console.log('✅ Cloudinary URI generated:', cloudinaryURI);
+
+      // Step 2: Update user's profileImage field using existing updateUserByUsername method
+      console.log('🔄 Updating user profileImage with username:', username);
+      const response = await userApi.updateUserByUsername(username, { 
+        profileImage: cloudinaryURI 
+      });
+      
+      // Update with the Cloudinary URL
+      setProfileImage(cloudinaryURI);
+      
+      // Step 3: Refresh user data in AuthContext to ensure latest profile data
+      console.log('🔄 Refreshing user data in context...');
+      await refreshUserData();
+      
+      // Clean up the temporary URL
+      URL.revokeObjectURL(tempUrl);
+      
+      toast({ title: "Success", description: "Profile photo uploaded successfully" });
+      console.log('✅ Profile photo updated successfully:', response);
+    } catch (error) {
+      console.error('❌ Error uploading image:', error);
+      // Revert to previous image on error
+      setProfileImage(currentUser?.profileImage || '/placeholder.svg');
+      // Clean up the temporary URL
+      URL.revokeObjectURL(tempUrl);
+      
+      toast({ title: "Error", description: "Failed to upload profile photo. Please try again.", variant: "destructive" });
+    }
+  };
+
   const getRoleBadgeStyle = (role: string) => {
     switch (role.toLowerCase()) {
       case 'owner': return 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white';
@@ -157,12 +221,6 @@ const Profile = () => {
       case 'vet': return 'bg-gradient-to-r from-purple-500 to-violet-600 text-white';
       default: return 'bg-gradient-to-r from-gray-500 to-slate-600 text-white';
     }
-  };
-
-  const handleProfileImageChange = (imageUrl: string) => {
-    setProfileImage(imageUrl);
-    // TODO: Save to backend
-    console.log('Profile image changed to:', imageUrl);
   };
 
   const getSectionColorClass = (color: string) => {
@@ -186,8 +244,8 @@ const Profile = () => {
       
       try {
         const [userProfile, userPets] = await Promise.all([
-          userApi.getUserProfile(currentUser.id),
-          petApi.getUserPets(currentUser.username || currentUser.id)
+          userApi.getUserByUsername(currentUser.username),
+          petApi.getUserPets(currentUser.id)
         ]);
         
         if (userProfile) {
@@ -259,98 +317,95 @@ const Profile = () => {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
-      <Card className="p-8 bg-white/80 backdrop-blur-lg border-0 shadow-xl">
-        <h3 className="text-2xl font-bold mb-8 flex items-center gap-3">
-          <User className="w-6 h-6 text-blue-600" />
+      <Card className="p-6 bg-white/80 backdrop-blur-lg border-0 shadow-xl">
+        <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
+          <User className="w-5 h-5 text-blue-600" />
           Personal Information
         </h3>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-lg font-semibold text-gray-700 mb-3">Full Name</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
             <Input
               name="name"
               value={formData.name}
               onChange={handleInputChange}
               disabled={!isEditing}
-              className="w-full text-lg p-4 h-12"
+              className="w-full"
             />
           </div>
           
           <div>
-            <label className="block text-lg font-semibold text-gray-700 mb-3">Email</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
             <Input
               name="email"
               type="email"
               value={formData.email}
               onChange={handleInputChange}
               disabled={!isEditing}
-              className="w-full text-lg p-4 h-12"
+              className="w-full"
             />
           </div>
           
           <div>
-            <label className="block text-lg font-semibold text-gray-700 mb-3">Phone</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
             <Input
               name="phone"
               value={formData.phone}
               onChange={handleInputChange}
               disabled={!isEditing}
-              className="w-full text-lg p-4 h-12"
-              placeholder="Enter your phone number"
+              className="w-full"
             />
           </div>
           
           <div>
-            <label className="block text-lg font-semibold text-gray-700 mb-3">Location</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
             <Input
               name="location"
               value={formData.location}
               onChange={handleInputChange}
               disabled={!isEditing}
-              className="w-full text-lg p-4 h-12"
-              placeholder="Enter your location"
+              className="w-full"
             />
           </div>
           
           <div className="md:col-span-2">
-            <label className="block text-lg font-semibold text-gray-700 mb-3">Bio</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Bio</label>
             <Textarea
               name="bio"
               value={formData.bio}
               onChange={handleInputChange}
               disabled={!isEditing}
-              rows={5}
-              className="w-full text-lg p-4"
-              placeholder="Tell us about yourself..."
+              rows={4}
+              className="w-full"
             />
           </div>
           
           <div>
-            <label className="block text-lg font-semibold text-gray-700 mb-3">Role</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
             <Select
               value={formData.role}
               onValueChange={(value) => handleSelectChange('role', value)}
               disabled={!isEditing}
             >
-              <SelectTrigger className="h-12 text-lg">
+              <SelectTrigger>
                 <SelectValue placeholder="Select role" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="owner" className="text-lg">Pet Owner</SelectItem>
-                <SelectItem value="sitter" className="text-lg">Pet Sitter</SelectItem>
-                <SelectItem value="vet" className="text-lg">Veterinarian</SelectItem>
+                <SelectItem value="owner">Pet Owner</SelectItem>
+                <SelectItem value="sitter">Pet Sitter</SelectItem>
+                <SelectItem value="vet">Veterinarian</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </div>
         
         {isEditing && (
-          <div className="mt-8 flex gap-4">
-            <Button onClick={handleSaveProfile} className="bg-gradient-to-r from-green-500 to-emerald-500 text-white text-lg px-8 py-3">
+          <div className="mt-6 flex gap-4">
+            <Button onClick={handleSaveProfile} className="bg-gradient-to-r from-green-500 to-emerald-500 text-white">
               Save Changes
             </Button>
-            <Button onClick={() => setIsEditing(false)} variant="outline" className="text-lg px-8 py-3">
+            <Button onClick={() => setIsEditing(false)} variant="outline">
               Cancel
             </Button>
           </div>
@@ -417,13 +472,23 @@ const Profile = () => {
                 
                 <div className="mt-4 flex flex-wrap gap-2">
                   {pet.vaccinated && (
-                    <Badge variant="secondary" className="text-xs">
+                    <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">
                       Vaccinated
                     </Badge>
                   )}
                   <Badge variant="outline" className="text-xs">
                     {pet.gender}
                   </Badge>
+                  {pet.isAvailableForMatch && (
+                    <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">
+                      Available for Match
+                    </Badge>
+                  )}
+                  {pet.isAvailableForBoarding && (
+                    <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-700">
+                      Available for Boarding
+                    </Badge>
+                  )}
                 </div>
               </motion.div>
             ))}
@@ -433,268 +498,78 @@ const Profile = () => {
     </motion.div>
   );
 
-  const renderServices = () => (
+  const renderOverview = () => (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="space-y-6"
+      className="space-y-8"
     >
-      <Card className="p-6 bg-white/80 backdrop-blur-lg border-0 shadow-xl">
-        <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
-          <Briefcase className="w-5 h-5 text-green-600" />
-          Services & Offerings
-        </h3>
-        
-        {formData.role === 'sitter' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Services Offered</label>
-              <Textarea
-                name="services"
-                value={formData.services}
-                onChange={handleInputChange}
-                disabled={!isEditing}
-                rows={3}
-                className="w-full"
-                placeholder="Pet sitting, dog walking, overnight care..."
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Capacity</label>
-              <Input
-                name="capacity"
-                value={formData.capacity}
-                onChange={handleInputChange}
-                disabled={!isEditing}
-                className="w-full"
-                placeholder="Number of pets you can handle"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Hourly Rate ($)</label>
-              <Input
-                name="rate"
-                value={formData.rate}
-                onChange={handleInputChange}
-                disabled={!isEditing}
-                className="w-full"
-                placeholder="Your hourly rate"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Availability</label>
-              <Input
-                name="availability"
-                value={formData.availability}
-                onChange={handleInputChange}
-                disabled={!isEditing}
-                className="w-full"
-                placeholder="Available times and days"
-              />
-            </div>
-          </div>
-        )}
-        
-        {formData.role === 'owner' && (
-          <div className="text-center py-12">
-            <Briefcase className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500 text-lg">Services section is for pet sitters</p>
-            <p className="text-gray-400">Switch to sitter role to access service settings</p>
-          </div>
-        )}
-        
-        {formData.role === 'vet' && (
-          <div className="text-center py-12">
-            <Stethoscope className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500 text-lg">Use the Practice section for veterinary services</p>
-            <p className="text-gray-400">Manage your veterinary practice details there</p>
-          </div>
-        )}
-        
-        {isEditing && formData.role === 'sitter' && (
-          <div className="mt-6 flex gap-4">
-            <Button onClick={handleSaveProfile} className="bg-gradient-to-r from-green-500 to-emerald-500 text-white">
-              Save Changes
-            </Button>
-            <Button onClick={() => setIsEditing(false)} variant="outline">
-              Cancel
-            </Button>
-          </div>
-        )}
-      </Card>
-    </motion.div>
-  );
-
-  const renderPractice = () => (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-6"
-    >
-      <Card className="p-6 bg-white/80 backdrop-blur-lg border-0 shadow-xl">
-        <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
-          <Stethoscope className="w-5 h-5 text-purple-600" />
-          Veterinary Practice
-        </h3>
-        
-        {formData.role === 'vet' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Specialty</label>
-              <Input
-                name="specialty"
-                value={formData.specialty}
-                onChange={handleInputChange}
-                disabled={!isEditing}
-                className="w-full"
-                placeholder="Small animals, exotic pets, surgery..."
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">License Number</label>
-              <Input
-                name="license"
-                value={formData.license}
-                onChange={handleInputChange}
-                disabled={!isEditing}
-                className="w-full"
-                placeholder="Your veterinary license number"
-              />
-            </div>
-            
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Office Hours & Availability</label>
-              <Textarea
-                name="availability"
-                value={formData.availability}
-                onChange={handleInputChange}
-                disabled={!isEditing}
-                rows={3}
-                className="w-full"
-                placeholder="Mon-Fri 9AM-6PM, Emergency calls available..."
-              />
-            </div>
-          </div>
-        )}
-        
-        {formData.role !== 'vet' && (
-          <div className="text-center py-12">
-            <Stethoscope className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500 text-lg">Practice section is for veterinarians</p>
-            <p className="text-gray-400">Switch to veterinarian role to access practice settings</p>
-          </div>
-        )}
-        
-        {isEditing && formData.role === 'vet' && (
-          <div className="mt-6 flex gap-4">
-            <Button onClick={handleSaveProfile} className="bg-gradient-to-r from-purple-500 to-violet-500 text-white">
-              Save Changes
-            </Button>
-            <Button onClick={() => setIsEditing(false)} variant="outline">
-              Cancel
-            </Button>
-          </div>
-        )}
-      </Card>
-    </motion.div>
-  );
-
-  const renderSettings = () => (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-6"
-    >
-      <Card className="p-6 bg-white/80 backdrop-blur-lg border-0 shadow-xl">
-        <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
-          <Settings className="w-5 h-5 text-gray-600" />
-          Account Settings
-        </h3>
-        
-        <div className="space-y-6">
-          {/* Privacy Settings */}
-          <div>
-            <h4 className="font-semibold mb-4">Privacy Settings</h4>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Profile Visibility</p>
-                  <p className="text-sm text-gray-600">Make your profile visible to other users</p>
-                </div>
-                <Switch defaultChecked />
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Show Online Status</p>
-                  <p className="text-sm text-gray-600">Let others see when you're online</p>
-                </div>
-                <Switch defaultChecked />
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Allow Messages</p>
-                  <p className="text-sm text-gray-600">Receive messages from other users</p>
-                </div>
-                <Switch defaultChecked />
-              </div>
-            </div>
-          </div>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {stats.map((stat, index) => {
+          const IconComponent = stat.icon;
+          const progress = stat.id === 'rating' ? (parseFloat(stat.value) / stat.max) * 100 : 
+                          stat.id === 'response' ? parseFloat(stat.value) : 
+                          (parseInt(stat.value) / stat.max) * 100;
           
-          {/* Notification Settings */}
-          <div>
-            <h4 className="font-semibold mb-4">Notifications</h4>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Email Notifications</p>
-                  <p className="text-sm text-gray-600">Receive updates via email</p>
+          return (
+            <motion.div
+              key={stat.id}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: index * 0.1 }}
+              whileHover={{ scale: 1.05, y: -5 }}
+            >
+              <Card className="p-6 bg-white/80 backdrop-blur-lg border-0 shadow-xl">
+                <div className="flex items-center justify-between mb-4">
+                  <div className={`p-3 rounded-xl bg-gradient-to-r ${stat.gradient}`}>
+                    <IconComponent className="w-6 h-6 text-white" />
+                  </div>
+                  <span className="text-3xl font-bold text-gray-800">{stat.value}</span>
                 </div>
-                <Switch defaultChecked />
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Push Notifications</p>
-                  <p className="text-sm text-gray-600">Get real-time updates</p>
-                </div>
-                <Switch />
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Booking Reminders</p>
-                  <p className="text-sm text-gray-600">Reminders for upcoming bookings</p>
-                </div>
-                <Switch defaultChecked />
-              </div>
-            </div>
-          </div>
-          
-          {/* Account Actions */}
-          <div>
-            <h4 className="font-semibold mb-4">Account Actions</h4>
-            <div className="space-y-4">
-              <Button 
-                onClick={handleSignOut}
-                className="w-full bg-gradient-to-r from-red-500 to-pink-500 text-white"
+                
+                <p className="text-gray-600 font-medium mb-3">{stat.label}</p>
+                
+                <Progress value={progress} className="h-2" />
+              </Card>
+            </motion.div>
+          );
+        })}
+      </div>
+
+      {/* Achievements */}
+      <Card className="p-6 bg-white/80 backdrop-blur-lg border-0 shadow-xl">
+        <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
+          <Trophy className="w-5 h-5 text-yellow-600" />
+          Achievements
+        </h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {achievements.map((achievement, index) => {
+            const IconComponent = achievement.icon;
+            
+            return (
+              <motion.div
+                key={achievement.title}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.5 + index * 0.1 }}
+                whileHover={{ scale: 1.05, rotate: 5 }}
+                className="text-center group cursor-pointer"
               >
-                Sign Out
-              </Button>
-              
-              <Button 
-                variant="outline"
-                className="w-full border-red-300 text-red-600 hover:bg-red-50"
-              >
-                Delete Account
-              </Button>
-            </div>
-          </div>
+                <motion.div
+                  className={`mx-auto w-16 h-16 rounded-full bg-gradient-to-r ${achievement.bgGradient} flex items-center justify-center mb-4 group-hover:shadow-lg transition-shadow`}
+                  whileHover={{ rotate: 360 }}
+                  transition={{ duration: 0.6 }}
+                >
+                  <IconComponent className="w-8 h-8 text-white" />
+                </motion.div>
+                
+                <h4 className="font-bold text-gray-800 mb-1">{achievement.title}</h4>
+                <p className="text-sm text-gray-600">{achievement.description}</p>
+              </motion.div>
+            );
+          })}
         </div>
       </Card>
     </motion.div>
@@ -702,12 +577,13 @@ const Profile = () => {
 
   const renderContent = () => {
     switch (activeSection) {
+      case 'overview': return renderOverview();
       case 'personal': return renderPersonalInfo();
       case 'pets': return renderPets();
-      case 'services': return renderServices();
-      case 'practice': return renderPractice();
-      case 'settings': return renderSettings();
-      default: return renderPersonalInfo();
+      case 'services': return <div>Services content coming soon...</div>;
+      case 'practice': return <div>Practice content coming soon...</div>;
+      case 'settings': return <div>Settings content coming soon...</div>;
+      default: return renderOverview();
     }
   };
 
@@ -785,24 +661,115 @@ const Profile = () => {
         <Header />
         
         <div className="relative z-10 pt-20">
-          {/* Hero Profile Dashboard */}
+          {/* Hero Profile Section */}
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             className="max-w-7xl mx-auto px-6 py-8"
           >
-            <ProfileDashboard 
-              currentUser={currentUser}
-              profileImage={profileImage}
-              formData={formData}
-              isEditing={isEditing}
-              onEditToggle={() => setIsEditing(!isEditing)}
-              onSignOut={signOut}
-              pets={pets}
-              onSectionChange={setActiveSection}
-              onProfileImageChange={handleProfileImageChange}
-            />
+            <Card className="relative overflow-hidden bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white border-0 shadow-2xl">
+              {/* Hero Content */}
+              <div className="relative p-8">
+                <div className="flex flex-col lg:flex-row items-center lg:items-start gap-8">
+                  {/* Profile Image */}
+                  <motion.div 
+                    className="relative group"
+                    whileHover={{ scale: 1.05 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                  >
+                    <Avatar className="w-32 h-32 border-4 border-white shadow-2xl">
+                      <AvatarImage 
+                        src={profileImage || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser?.name}&backgroundColor=ffd93d`} 
+                        alt="Profile" 
+                      />
+                      <AvatarFallback className="text-2xl font-bold bg-white text-indigo-600">
+                        {currentUser?.name?.charAt(0) || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    
+                    <motion.button
+                      className="absolute -bottom-2 -right-2 bg-white text-indigo-600 p-3 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => document.getElementById('profile-image-input')?.click()}
+                    >
+                      <Camera size={16} />
+                    </motion.button>
+                    
+                    {/* Hidden file input */}
+                    <input
+                      id="profile-image-input"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                    />
+                  </motion.div>
+
+                  {/* Profile Info */}
+                  <div className="flex-1 text-center lg:text-left">
+                    <motion.h1 
+                      className="text-4xl lg:text-5xl font-bold mb-4"
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.2 }}
+                    >
+                      {currentUser?.name || 'Your Profile'}
+                    </motion.h1>
+
+                    <motion.div 
+                      className="flex flex-wrap justify-center lg:justify-start gap-3 mb-6"
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.3 }}
+                    >
+                      <Badge className={`${getRoleBadgeStyle(formData.role)} px-4 py-2 text-sm font-medium`}>
+                        <User className="w-4 h-4 mr-2" />
+                        {formData.role.charAt(0).toUpperCase() + formData.role.slice(1)}
+                      </Badge>
+                      
+                      {formData.location && (
+                        <Badge variant="secondary" className="bg-white/20 text-white px-4 py-2">
+                          <MapPin className="w-4 h-4 mr-2" />
+                          {formData.location}
+                        </Badge>
+                      )}
+                    </motion.div>
+
+                    {/* Action Buttons */}
+                    <motion.div 
+                      className="flex flex-wrap justify-center lg:justify-start gap-4"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.5 }}
+                    >
+                      <Button
+                        onClick={() => setIsEditing(!isEditing)}
+                        className={`${
+                          isEditing 
+                            ? 'bg-white/20 hover:bg-white/30' 
+                            : 'bg-white text-indigo-600 hover:bg-gray-100'
+                        } transition-all duration-300`}
+                      >
+                        <Edit className="w-4 h-4 mr-2" />
+                        {isEditing ? 'Cancel Edit' : 'Edit Profile'}
+                      </Button>
+                      
+                      <Button className="bg-white/20 hover:bg-white/30 text-white border border-white/30">
+                        <Share2 className="w-4 h-4 mr-2" />
+                        Share Profile
+                      </Button>
+                      
+                      <Button className="bg-white/20 hover:bg-white/30 text-white border border-white/30">
+                        <Settings className="w-4 h-4 mr-2" />
+                        Settings
+                      </Button>
+                    </motion.div>
+                  </div>
+                </div>
+              </div>
+            </Card>
           </motion.div>
 
           {/* Horizontal Navigation */}
