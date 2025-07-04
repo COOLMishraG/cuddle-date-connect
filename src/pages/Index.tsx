@@ -1,5 +1,6 @@
 
 import Header from '../components/Header';
+import MatchDeckCards from '../components/MatchDeckCards';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -30,7 +31,40 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { matchApi } from '@/services/api';
 
 const Index = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, currentUser } = useAuth();
+  const [matchRequests, setMatchRequests] = useState<any[]>([]);
+  const [loadingRequests, setLoadingRequests] = useState(false);
+
+  // Fetch match requests for authenticated users
+  useEffect(() => {
+    const fetchMatchRequests = async () => {
+      if (isAuthenticated && currentUser) {
+        try {
+          setLoadingRequests(true);
+          const requests = await matchApi.getReceivedMatchRequests(currentUser.id);
+          setMatchRequests(requests);
+        } catch (error) {
+          console.error('Error fetching match requests:', error);
+        } finally {
+          setLoadingRequests(false);
+        }
+      }
+    };
+
+    fetchMatchRequests();
+  }, [isAuthenticated, currentUser]);
+
+  const handleRequestStatusChange = async () => {
+    // Refresh the match requests after status change
+    if (isAuthenticated && currentUser) {
+      try {
+        const requests = await matchApi.getReceivedMatchRequests(currentUser.id);
+        setMatchRequests(requests);
+      } catch (error) {
+        console.error('Error refreshing match requests:', error);
+      }
+    }
+  };
 
   const stats = [
     { 
@@ -216,7 +250,7 @@ const Index = () => {
               </div>
             </div>
 
-            {/* Hero Image */}
+            {/* Hero Image - Always visible */}
             <div className="relative animate-slide-in-right">
               <div className="relative z-10">
                 <img
@@ -239,6 +273,23 @@ const Index = () => {
                     <span className="text-sm font-bold text-slate-700">4.9/5 Rating</span>
                   </div>
                 </div>
+
+                {/* Match Request Notification Overlay */}
+                {isAuthenticated && matchRequests.length > 0 && (
+                  <div className="absolute top-4 left-4 right-4">
+                    <div className="bg-gradient-to-r from-pink-500/90 to-rose-500/90 backdrop-blur-xl rounded-2xl p-4 border border-white/20 shadow-2xl">
+                      <div className="flex items-center justify-center text-white">
+                        <Heart className="w-5 h-5 mr-2" />
+                        <span className="font-semibold text-lg">
+                          {matchRequests.length} New Match Request{matchRequests.length > 1 ? 's' : ''}!
+                        </span>
+                      </div>
+                      <p className="text-center text-white/90 text-sm mt-1">
+                        Check the floating cards below
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
               
               {/* Background Decorations */}
@@ -635,6 +686,14 @@ const Index = () => {
           </div>
         </div>
       </footer>
+
+      {/* Match Deck Cards Overlay */}
+      {isAuthenticated && matchRequests.length > 0 && !loadingRequests && (
+        <MatchDeckCards 
+          matchRequests={matchRequests}
+          onStatusChange={handleRequestStatusChange}
+        />
+      )}
     </div>
   );
 };

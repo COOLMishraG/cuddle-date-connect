@@ -552,6 +552,137 @@ export const matchApi = {
       console.error('Error getting pet matches by ID:', error);
       throw error;
     }
+  },
+
+  // Create a new match request
+  createMatchRequest: async (matchData: {
+    requesterPetId: string;
+    recipientPetId: string;
+    message: string;
+  }) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/matches/request`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(matchData),
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to create match request');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error creating match request:', error);
+      throw error;
+    }
+  },
+
+  // Get match requests received by the current user
+  getReceivedMatchRequests: async (userId?: string, status?: string) => {
+    try {
+      let url = `${API_BASE_URL}/matches/received`;
+      
+      // If userId is provided, use the specific endpoint
+      if (userId) {
+        url = `${API_BASE_URL}/matches/received/${userId}`;
+        if (status) {
+          url += `?status=${status}`;
+        }
+      }
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to get received match requests');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error getting received match requests:', error);
+      throw error;
+    }
+  },
+
+  // Get match requests sent by the current user
+  getSentMatchRequests: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/matches/sent`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to get sent match requests');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error getting sent match requests:', error);
+      throw error;
+    }
+  },
+
+  // Approve a match request
+  approveMatchRequest: async (matchId: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/matches/${matchId}/approve`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to approve match request');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error approving match request:', error);
+      throw error;
+    }
+  },
+
+  // Reject a match request
+  rejectMatchRequest: async (matchId: string, reason?: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/matches/${matchId}/reject`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ reason }),
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to reject match request');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error rejecting match request:', error);
+      throw error;
+    }
   }
 };
 
@@ -579,4 +710,312 @@ export const vetApi = {
       throw error;
     }
   },
+};
+
+// Post-related API calls
+export const postApi = {
+  // Create a new post
+  createPost: async (postData: { content: string; owner: string; imageUri?: string }) => {
+    try {
+      const response = await fetch(`http://localhost:3001/posts`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(postData),
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to create post');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error creating post:', error);
+      throw error;
+    }
+  },
+
+  // Get all posts
+  getAllPosts: async () => {
+    try {
+      const response = await fetch(`http://localhost:3001/posts`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to get posts');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error getting posts:', error);
+      throw error;
+    }
+  },
+
+  // Get a specific post
+  getPost: async (postId: string) => {
+    try {
+      const response = await fetch(`http://localhost:3001/posts/${postId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to get post');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error getting post:', error);
+      throw error;
+    }
+  },
+
+  // Update a post
+  updatePost: async (postId: string, postData: { content?: string; imageUri?: string }) => {
+    try {
+      const response = await fetch(`http://localhost:3001/posts/${postId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(postData),
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update post');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error updating post:', error);
+      throw error;
+    }
+  },
+
+  // Delete a post
+  deletePost: async (postId: string) => {
+    try {
+      const response = await fetch(`http://localhost:3001/posts/${postId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to delete post');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      throw error;
+    }
+  },
+
+  // Like a post
+  likePost: async (postId: string) => {
+    try {
+      const response = await fetch(`http://localhost:3001/posts/${postId}/like`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to like post');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error liking post:', error);
+      throw error;
+    }
+  }
+};
+
+// Comment-related API calls
+export const commentApi = {
+  // Create a new comment
+  createComment: async (commentData: { content: string; author: string; postId: string }) => {
+    try {
+      const response = await fetch(`http://localhost:3001/comments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(commentData),
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to create comment');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error creating comment:', error);
+      throw error;
+    }
+  },
+
+  // Get all comments
+  getAllComments: async () => {
+    try {
+      const response = await fetch(`http://localhost:3001/comments`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to get comments');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error getting comments:', error);
+      throw error;
+    }
+  },
+
+  // Get comments for a specific post
+  getPostComments: async (postId: string) => {
+    try {
+      const response = await fetch(`http://localhost:3001/comments/post/${postId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to get post comments');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error getting post comments:', error);
+      throw error;
+    }
+  },
+
+  // Get a specific comment
+  getComment: async (commentId: string) => {
+    try {
+      const response = await fetch(`http://localhost:3001/comments/${commentId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to get comment');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error getting comment:', error);
+      throw error;
+    }
+  },
+
+  // Update a comment
+  updateComment: async (commentId: string, commentData: { content?: string }) => {
+    try {
+      const response = await fetch(`http://localhost:3001/comments/${commentId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(commentData),
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update comment');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error updating comment:', error);
+      throw error;
+    }
+  },
+
+  // Delete a comment
+  deleteComment: async (commentId: string) => {
+    try {
+      const response = await fetch(`http://localhost:3001/comments/${commentId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to delete comment');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+      throw error;
+    }
+  }
+};
+
+// General image upload API (for community posts, etc.)
+export const imageApi = {
+  // Upload image for community posts
+  uploadImage: async (imageFile: File) => {
+    try {
+      const formData = new FormData();
+      formData.append('image', imageFile);
+      
+      const response = await fetch(`http://localhost:3001/upload/image`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to upload image');
+      }
+      
+      const result = await response.json();
+      return result.url || result.imageUrl || result.secure_url; // Handle different response formats
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      throw error;
+    }
+  }
 };

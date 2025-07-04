@@ -1,13 +1,38 @@
-import { useState } from 'react';
-import { Heart, User, Search, Menu, X, LogOut, Home, Stethoscope, Users, Dog } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Heart, User, Menu, X, LogOut, Home, Stethoscope, Users, Dog, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { matchApi } from '@/services/api';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
   const navigate = useNavigate();
   const { currentUser, isAuthenticated, signOut } = useAuth();
+
+  // Fetch pending match requests count
+  useEffect(() => {
+    const fetchPendingRequests = async () => {
+      if (isAuthenticated && currentUser) {
+        try {
+          const requests = await matchApi.getReceivedMatchRequests(currentUser.id, 'pending');
+          setPendingRequestsCount(requests.length);
+        } catch (error) {
+          console.error('Error fetching pending requests:', error);
+          // Don't show error to user for notifications
+        }
+      }
+    };
+
+    fetchPendingRequests();
+    
+    // Refresh notifications every 30 seconds
+    const interval = setInterval(fetchPendingRequests, 30000);
+    
+    return () => clearInterval(interval);
+  }, [isAuthenticated, currentUser]);
 
   const navItems = [
     { id: 'home', label: 'Home', path: '/', icon: Home },
@@ -73,15 +98,24 @@ const Header = () => {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-3">
-            <Button 
-              variant="ghost" 
-              size="sm"
-              onClick={() => navigate('/search')}
-              className="bg-gray-100/50 hover:bg-gray-200/50 text-gray-700 border-0 rounded-xl transition-all duration-300"
-            >
-              <Search className="w-4 h-4 mr-2" />
-              Search
-            </Button>
+            {isAuthenticated && (
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => navigate('/')}
+                className="relative bg-gray-100/50 hover:bg-gray-200/50 text-gray-700 border-0 rounded-xl transition-all duration-300"
+              >
+                <Bell className="w-4 h-4 mr-2" />
+                Notifications
+                {pendingRequestsCount > 0 && (
+                  <Badge 
+                    className="absolute -top-1 -right-1 bg-red-500 text-white text-xs min-w-[20px] h-5 rounded-full flex items-center justify-center"
+                  >
+                    {pendingRequestsCount > 99 ? '99+' : pendingRequestsCount}
+                  </Badge>
+                )}
+              </Button>
+            )}
             
             {isAuthenticated ? (
               <>
@@ -145,13 +179,20 @@ const Header = () => {
               
               <div className="h-px bg-gray-200 my-2"></div>
               
-              <button
-                onClick={() => handleNavClick('/search')}
-                className="w-full flex items-center space-x-3 px-4 py-3 text-left text-gray-700 hover:text-indigo-600 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 rounded-xl transition-all duration-300"
-              >
-                <Search className="w-5 h-5" />
-                <span className="font-medium">Search</span>
-              </button>
+              {isAuthenticated && (
+                <button
+                  onClick={() => handleNavClick('/')}
+                  className="w-full flex items-center space-x-3 px-4 py-3 text-left text-gray-700 hover:text-indigo-600 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 rounded-xl transition-all duration-300 relative"
+                >
+                  <Bell className="w-5 h-5" />
+                  <span className="font-medium">Notifications</span>
+                  {pendingRequestsCount > 0 && (
+                    <Badge className="bg-red-500 text-white text-xs min-w-[20px] h-5 rounded-full flex items-center justify-center ml-auto">
+                      {pendingRequestsCount > 99 ? '99+' : pendingRequestsCount}
+                    </Badge>
+                  )}
+                </button>
+              )}
               
               {isAuthenticated ? (
                 <>
