@@ -1,66 +1,128 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  X, 
-  Heart, 
-  MapPin, 
-  Calendar, 
-  Shield, 
-  Award, 
-  MessageCircle, 
-  Phone, 
-  Mail,
-  User,
-  Clock,
-  Star,
-  Camera,
-  FileText,
-  Stethoscope
-} from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Separator } from '@/components/ui/separator';
-
-interface Pet {
-  id: string;
-  name: string;
-  breed: string;
-  age: number;
-  location: string;
-  owner: string;
-  image: string;
-  vaccinated: boolean;
-  gender: 'Male' | 'Female';
-}
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { 
+  Heart, 
+  MapPin, 
+  Phone, 
+  Mail, 
+  MessageCircle, 
+  Star,
+  X,
+  FileText,
+  Stethoscope,
+  User
+} from 'lucide-react';
+import { formatAnimalType, getGenderSymbol, getAnimalEmoji } from '@/utils/petUtils';
+import { PetGender, AnimalType } from '@/types/pet';
+import { useAuth } from '@/contexts/AuthContext';
+import { petApi, matchApi } from '@/services/api';
 
 interface PetProfileDialogProps {
   open: boolean;
   onClose: () => void;
-  pet: Pet | null;
+  pet: any;
 }
 
 const PetProfileDialog = ({ open, onClose, pet }: PetProfileDialogProps) => {
-  const [activeTab, setActiveTab] = useState<'profile' | 'contact'>('profile');
+  const { currentUser } = useAuth();
+  const [activeTab, setActiveTab] = useState('profile');
   const [contactForm, setContactForm] = useState({
-    name: '',
-    email: '',
-    phone: '',
     message: '',
-    preferredContact: 'email'
+    selectedMyPet: ''
   });
+  const [myPets, setMyPets] = useState<any[]>([]);
+  const [loadingMyPets, setLoadingMyPets] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  // Fetch current user's pets when dialog opens
+  useEffect(() => {
+    if (open && currentUser?.username) {
+      setLoadingMyPets(true);
+      petApi.getUserPets(currentUser.username)
+        .then(setMyPets)
+        .catch(console.error)
+        .finally(() => setLoadingMyPets(false));
+    }
+  }, [open, currentUser]);
 
   if (!pet) return null;
 
-  const handleContactSubmit = (e: React.FormEvent) => {
+  const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Contact form submitted:', contactForm);
-    // Here you would send the contact request to your backend
-    alert('Contact request sent successfully!');
-    onClose();
+    
+    if (!currentUser || !contactForm.selectedMyPet || !contactForm.message) {
+      alert('Please select one of your pets and write a message.');
+      return;
+    }
+
+    // Find the selected pet from user's pets
+    const selectedMyPet = myPets.find(p => p.id === contactForm.selectedMyPet);
+    if (!selectedMyPet) {
+      alert('Selected pet not found. Please try again.');
+      return;
+    }
+
+    // Validate animal types match
+    if (selectedMyPet.animal !== pet.animal) {
+      alert(`Breeding is only allowed between pets of the same species. Your ${formatAnimalType(selectedMyPet.animal)} cannot breed with a ${formatAnimalType(pet.animal)}.`);
+      return;
+    }
+
+    // Validate genders are opposite
+    const normalizeGender = (gender: any) => {
+      if (gender === PetGender.MALE || gender === 'Male' || gender === 'male') return 'MALE';
+      if (gender === PetGender.FEMALE || gender === 'Female' || gender === 'female') return 'FEMALE';
+      return gender?.toUpperCase();
+    };
+
+    const myPetGender = normalizeGender(selectedMyPet.gender);
+    const targetPetGender = normalizeGender(pet.gender);
+
+    if (myPetGender === targetPetGender) {
+      alert(`Breeding requires pets of opposite genders. Both pets are ${myPetGender.toLowerCase()}. Please select a pet of the opposite gender.`);
+      return;
+    }
+
+    if (!myPetGender || !targetPetGender) {
+      alert('Pet gender information is missing. Please ensure both pets have gender information before requesting a match.');
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      
+      // Create match request - validation passed
+      const matchRequest = {
+        requesterPetId: contactForm.selectedMyPet,
+        recipientPetId: pet.id,
+        message: contactForm.message
+      };
+      
+      await matchApi.createMatchRequest(matchRequest);
+      
+      alert('Match request sent successfully! The pet owner will be notified.');
+      
+      // Reset form
+      setContactForm({
+        message: '',
+        selectedMyPet: ''
+      });
+      
+      onClose();
+      
+    } catch (error) {
+      console.error('Error sending match request:', error);
+      alert('Failed to send match request. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const petDetails = {
@@ -119,7 +181,10 @@ const PetProfileDialog = ({ open, onClose, pet }: PetProfileDialogProps) => {
               
               {/* Pet Info Overlay */}
               <div className="absolute bottom-6 left-6 text-white">
-                <h1 className="text-4xl font-bold mb-2">{pet.name}</h1>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-2xl">{getAnimalEmoji(pet.animal)}</span>
+                  <h1 className="text-4xl font-bold">{pet.name}</h1>
+                </div>
                 <p className="text-xl opacity-90">{pet.breed} • {pet.age} years old</p>
                 <div className="flex items-center mt-2">
                   <MapPin className="w-5 h-5 mr-2" />
@@ -133,7 +198,10 @@ const PetProfileDialog = ({ open, onClose, pet }: PetProfileDialogProps) => {
                   {pet.vaccinated ? '✅ Health Verified' : '⚠️ Pending'}
                 </Badge>
                 <Badge className="bg-pink-500 text-white">
-                  {pet.gender === 'Female' ? '♀️ Female' : '♂️ Male'}
+                  {getGenderSymbol(pet.gender)} {pet.gender}
+                </Badge>
+                <Badge className="bg-blue-500 text-white">
+                  {formatAnimalType(pet.animal)}
                 </Badge>
               </div>
             </div>
@@ -160,7 +228,7 @@ const PetProfileDialog = ({ open, onClose, pet }: PetProfileDialogProps) => {
                 onClick={() => setActiveTab('contact')}
               >
                 <MessageCircle className="w-5 h-5 inline mr-2" />
-                Contact Owner
+                Request Match
               </button>
             </div>
             
@@ -173,13 +241,13 @@ const PetProfileDialog = ({ open, onClose, pet }: PetProfileDialogProps) => {
                     <CardContent className="p-6">
                       <div className="flex items-center gap-4">
                         <Avatar className="w-16 h-16">
-                          <AvatarImage src="/placeholder.svg" alt={pet.owner} />
+                          <AvatarImage src="/placeholder.svg" alt={pet.owner?.displayName || pet.owner?.name || 'Pet Owner'} />
                           <AvatarFallback className="bg-purple-500 text-white text-xl">
-                            {pet.owner.split(' ').map(n => n[0]).join('')}
+                            {(pet.owner?.displayName || pet.owner?.name || 'Pet Owner').split(' ').map((n: string) => n[0]).join('')}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <h3 className="text-xl font-bold text-gray-800">{pet.owner}</h3>
+                          <h3 className="text-xl font-bold text-gray-800">{pet.owner?.displayName || pet.owner?.name || pet.owner || 'Pet Owner'}</h3>
                           <p className="text-purple-600 font-medium">Experienced Breeder</p>
                           <div className="flex items-center mt-1">
                             <Star className="w-4 h-4 text-yellow-400 fill-current" />
@@ -268,78 +336,174 @@ const PetProfileDialog = ({ open, onClose, pet }: PetProfileDialogProps) => {
               {activeTab === 'contact' && (
                 <form onSubmit={handleContactSubmit} className="space-y-6">
                   <div className="text-center mb-6">
-                    <h3 className="text-2xl font-bold text-gray-800 mb-2">Contact {pet.owner}</h3>
-                    <p className="text-gray-600">Send a message to inquire about breeding opportunities</p>
+                    <h3 className="text-2xl font-bold text-gray-800 mb-2">Request Breeding Match</h3>
+                    <p className="text-gray-600">Send a breeding request for {pet.name} with one of your pets</p>
                   </div>
                   
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Your Name</label>
-                      <Input
-                        required
-                        value={contactForm.name}
-                        onChange={(e) => setContactForm({...contactForm, name: e.target.value})}
-                        placeholder="Enter your full name"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-                      <Input
-                        type="email"
-                        required
-                        value={contactForm.email}
-                        onChange={(e) => setContactForm({...contactForm, email: e.target.value})}
-                        placeholder="your@email.com"
-                      />
-                    </div>
+                  {/* Current User Info Display */}
+                  <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-0">
+                    <CardContent className="p-4">
+                      <h4 className="font-bold text-gray-800 mb-3">Your Information</h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center gap-2">
+                          <User className="w-4 h-4 text-gray-500" />
+                          <span>{currentUser?.displayName || currentUser?.username || 'Anonymous User'}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Mail className="w-4 h-4 text-gray-500" />
+                          <span>{currentUser?.email || 'Email not available'}</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Owner Contact Info Display */}
+                  <Card className="bg-gradient-to-r from-green-50 to-blue-50 border-0">
+                    <CardContent className="p-4">
+                      <h4 className="font-bold text-gray-800 mb-3">Owner Information</h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center gap-2">
+                          <User className="w-4 h-4 text-gray-500" />
+                          <span>{pet.owner?.displayName || pet.owner?.name || pet.owner || 'Pet Owner'}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Mail className="w-4 h-4 text-gray-500" />
+                          <span>{pet.owner?.email || 'Contact via match request'}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <MapPin className="w-4 h-4 text-gray-500" />
+                          <span>{pet.location}</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  {/* Select Your Pet */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Select Your Pet for Breeding
+                      <span className="text-xs text-gray-500 ml-2">
+                        (Must be {formatAnimalType(pet.animal)} and opposite gender)
+                      </span>
+                    </label>
+                    {loadingMyPets ? (
+                      <div className="text-center py-4">
+                        <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
+                        <p className="text-sm text-gray-600 mt-2">Loading your pets...</p>
+                      </div>
+                    ) : myPets.length === 0 ? (
+                      <div className="text-center py-4 text-gray-500">
+                        <p className="text-sm">You don't have any pets yet.</p>
+                        <p className="text-xs mt-1">Add a pet first to request breeding matches.</p>
+                      </div>
+                    ) : (() => {
+                      // Helper function to check compatibility
+                      const isCompatible = (myPet: any) => {
+                        const normalizeGender = (gender: any) => {
+                          if (gender === PetGender.MALE || gender === 'Male' || gender === 'male') return 'MALE';
+                          if (gender === PetGender.FEMALE || gender === 'Female' || gender === 'female') return 'FEMALE';
+                          return gender?.toUpperCase();
+                        };
+                        
+                        const sameSpecies = myPet.animal === pet.animal;
+                        const oppositeGender = normalizeGender(myPet.gender) !== normalizeGender(pet.gender);
+                        const hasGenderInfo = normalizeGender(myPet.gender) && normalizeGender(pet.gender);
+                        
+                        return sameSpecies && oppositeGender && hasGenderInfo;
+                      };
+
+                      const compatiblePets = myPets.filter(isCompatible);
+                      const incompatiblePets = myPets.filter(myPet => !isCompatible(myPet));
+
+                      return (
+                        <div className="space-y-3">
+                          <Select 
+                            value={contactForm.selectedMyPet} 
+                            onValueChange={(value) => setContactForm({...contactForm, selectedMyPet: value})}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Choose which of your pets to breed" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {compatiblePets.length > 0 && (
+                                <>
+                                  <div className="px-2 py-1 text-xs font-medium text-green-600 bg-green-50">
+                                    ✅ Compatible Pets
+                                  </div>
+                                  {compatiblePets.map((myPet) => (
+                                    <SelectItem key={myPet.id} value={myPet.id}>
+                                      <div className="flex items-center gap-2">
+                                        <span>{getAnimalEmoji(myPet.animal)}</span>
+                                        <span className="font-medium text-green-700">{myPet.name}</span>
+                                        <span className="text-gray-500">({myPet.breed})</span>
+                                        <span className="text-xs text-gray-400">
+                                          {getGenderSymbol(myPet.gender)} {myPet.age}y
+                                        </span>
+                                        <span className="text-xs text-green-600">✓</span>
+                                      </div>
+                                    </SelectItem>
+                                  ))}
+                                </>
+                              )}
+                              
+                              {incompatiblePets.length > 0 && (
+                                <>
+                                  {compatiblePets.length > 0 && (
+                                    <div className="border-t border-gray-200 my-1"></div>
+                                  )}
+                                  <div className="px-2 py-1 text-xs font-medium text-red-600 bg-red-50">
+                                    ❌ Incompatible Pets
+                                  </div>
+                                  {incompatiblePets.map((myPet) => {
+                                    const normalizeGender = (gender: any) => {
+                                      if (gender === PetGender.MALE || gender === 'Male' || gender === 'male') return 'MALE';
+                                      if (gender === PetGender.FEMALE || gender === 'Female' || gender === 'female') return 'FEMALE';
+                                      return gender?.toUpperCase();
+                                    };
+                                    
+                                    const sameSpecies = myPet.animal === pet.animal;
+                                    const sameGender = normalizeGender(myPet.gender) === normalizeGender(pet.gender);
+                                    const reason = !sameSpecies ? 'Different species' : sameGender ? 'Same gender' : 'Missing gender info';
+                                    
+                                    return (
+                                      <SelectItem key={myPet.id} value={myPet.id} disabled>
+                                        <div className="flex items-center gap-2 opacity-50">
+                                          <span>{getAnimalEmoji(myPet.animal)}</span>
+                                          <span>{myPet.name}</span>
+                                          <span className="text-gray-500">({myPet.breed})</span>
+                                          <span className="text-xs text-gray-400">
+                                            {getGenderSymbol(myPet.gender)} {myPet.age}y
+                                          </span>
+                                          <span className="text-xs text-red-600">({reason})</span>
+                                        </div>
+                                      </SelectItem>
+                                    );
+                                  })}
+                                </>
+                              )}
+                            </SelectContent>
+                          </Select>
+                          
+                          {compatiblePets.length === 0 && myPets.length > 0 && (
+                            <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                              <p className="text-sm text-yellow-800">
+                                <strong>No compatible pets found.</strong> To breed with {pet.name} (a {getGenderSymbol(pet.gender)} {formatAnimalType(pet.animal)}), you need a {pet.gender === PetGender.MALE || pet.gender === 'Male' || pet.gender === 'male' ? 'female' : 'male'} {formatAnimalType(pet.animal)}.
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-                    <Input
-                      type="tel"
-                      value={contactForm.phone}
-                      onChange={(e) => setContactForm({...contactForm, phone: e.target.value})}
-                      placeholder="+1 (555) 123-4567"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Preferred Contact Method</label>
-                    <div className="flex gap-4">
-                      <label className="flex items-center">
-                        <input
-                          type="radio"
-                          value="email"
-                          checked={contactForm.preferredContact === 'email'}
-                          onChange={(e) => setContactForm({...contactForm, preferredContact: e.target.value})}
-                          className="mr-2"
-                        />
-                        <Mail className="w-4 h-4 mr-1" />
-                        Email
-                      </label>
-                      <label className="flex items-center">
-                        <input
-                          type="radio"
-                          value="phone"
-                          checked={contactForm.preferredContact === 'phone'}
-                          onChange={(e) => setContactForm({...contactForm, preferredContact: e.target.value})}
-                          className="mr-2"
-                        />
-                        <Phone className="w-4 h-4 mr-1" />
-                        Phone
-                      </label>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Message</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Message to Owner</label>
                     <Textarea
                       required
                       rows={5}
                       value={contactForm.message}
                       onChange={(e) => setContactForm({...contactForm, message: e.target.value})}
-                      placeholder="Tell the owner about your pet, breeding goals, and any questions you have..."
+                      placeholder="Introduce yourself and your pet, share your breeding goals, and ask any questions you have about their pet..."
                     />
                   </div>
                   
@@ -349,15 +513,17 @@ const PetProfileDialog = ({ open, onClose, pet }: PetProfileDialogProps) => {
                       variant="outline"
                       className="flex-1"
                       onClick={onClose}
+                      disabled={submitting}
                     >
                       Cancel
                     </Button>
                     <Button
                       type="submit"
                       className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+                      disabled={submitting || !contactForm.selectedMyPet || !contactForm.message}
                     >
                       <MessageCircle className="w-4 h-4 mr-2" />
-                      Send Message
+                      {submitting ? 'Sending...' : 'Send Match Request'}
                     </Button>
                   </div>
                 </form>

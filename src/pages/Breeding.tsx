@@ -250,7 +250,7 @@ const Breeding = () => {
                       setShowPetProfile(true);
                     }}
                   >
-                    View Profile & Contact
+                    View Profile & Request Match
                   </Button>
                 </CardContent>
               </Card>

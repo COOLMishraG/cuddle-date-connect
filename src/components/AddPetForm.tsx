@@ -434,7 +434,7 @@ const AddPetForm = ({ open, onClose, onPetAdded, existingPet }: AddPetFormProps)
             </Button>
             <Button 
               type="submit" 
-              className="bg-burgundy hover:bg-deep-rose text-white"
+              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
               disabled={isSubmitting}
             >
               {isSubmitting 
