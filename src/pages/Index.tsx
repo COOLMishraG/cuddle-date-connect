@@ -273,23 +273,6 @@ const Index = () => {
                     <span className="text-sm font-bold text-slate-700">4.9/5 Rating</span>
                   </div>
                 </div>
-
-                {/* Match Request Notification Overlay */}
-                {isAuthenticated && matchRequests.length > 0 && (
-                  <div className="absolute top-4 left-4 right-4">
-                    <div className="bg-gradient-to-r from-pink-500/90 to-rose-500/90 backdrop-blur-xl rounded-2xl p-4 border border-white/20 shadow-2xl">
-                      <div className="flex items-center justify-center text-white">
-                        <Heart className="w-5 h-5 mr-2" />
-                        <span className="font-semibold text-lg">
-                          {matchRequests.length} New Match Request{matchRequests.length > 1 ? 's' : ''}!
-                        </span>
-                      </div>
-                      <p className="text-center text-white/90 text-sm mt-1">
-                        Check the floating cards below
-                      </p>
-                    </div>
-                  </div>
-                )}
               </div>
               
               {/* Background Decorations */}

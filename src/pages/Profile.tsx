@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Heart, Loader2, Sparkles, Zap, Crown, Star, Trophy, Camera, Edit, Share2, Settings, User, MapPin, Mail, Phone, Calendar, Award, TrendingUp, Activity, Target, Clock, Users, DollarSign, Stethoscope, Shield, Bell, Briefcase } from 'lucide-react';
+import { Heart, Loader2, Sparkles, Zap, Crown, Star, Trophy, Camera, Edit, Share2, Settings, User, MapPin, Mail, Phone, Calendar, Award, TrendingUp, Activity, Target, Clock, Users, DollarSign, Stethoscope, Shield, Bell, Briefcase, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Header from '../components/Header';
 import ProfileDashboard from '../components/ProfileDashboard';
@@ -9,6 +9,7 @@ import AddPetForm from '@/components/AddPetForm';
 import useAuthGuard from '@/hooks/useAuthGuard';
 import { toast } from '@/hooks/use-toast';
 import { userApi, petApi } from '@/services/api';
+import { matchApi } from '@/services/api';
 import { Pet } from '@/types/pet';
 import { UserRole } from '@/types/user';
 import { Card } from '@/components/ui/card';
@@ -35,6 +36,9 @@ const Profile = () => {
   const [activeSection, setActiveSection] = useState('personal');
   const [showConfetti, setShowConfetti] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [matches, setMatches] = useState<any[]>([]);
+  const [showMatchDialog, setShowMatchDialog] = useState(false);
+  const [activeMatchTab, setActiveMatchTab] = useState('pending');
   
   // Form state
   const [formData, setFormData] = useState({
@@ -57,6 +61,7 @@ const Profile = () => {
   const sections = [
     { id: 'personal', label: 'Personal Info', icon: User, color: 'blue' },
     { id: 'pets', label: 'My Pets', icon: Heart, color: 'pink' },
+    { id: 'matches', label: 'My Matches', icon: Users, color: 'indigo' },
     { id: 'services', label: 'Services', icon: Briefcase, color: 'green' },
     { id: 'practice', label: 'Practice', icon: Stethoscope, color: 'purple' },
     { id: 'settings', label: 'Settings', icon: Settings, color: 'gray' }
@@ -185,9 +190,10 @@ const Profile = () => {
       }
       
       try {
-        const [userProfile, userPets] = await Promise.all([
+        const [userProfile, userPets, userMatches] = await Promise.all([
           userApi.getUserProfile(currentUser.id),
-          petApi.getUserPets(currentUser.username || currentUser.id)
+          petApi.getUserPets(currentUser.username || currentUser.id),
+          matchApi.getReceivedMatchRequests(currentUser.id)
         ]);
         
         if (userProfile) {
@@ -208,6 +214,7 @@ const Profile = () => {
         }
         
         setPets(userPets || []);
+        setMatches(userMatches || []);
       } catch (error) {
         console.error('Error fetching user data:', error);
         toast({ title: "Error", description: "Failed to load profile data", variant: "destructive" });
@@ -700,10 +707,331 @@ const Profile = () => {
     </motion.div>
   );
 
+  const renderMatches = () => {
+    const pendingMatches = matches.filter(match => match.status === 'PENDING');
+    const completedMatches = matches.filter(match => match.status === 'APPROVED');
+    const rejectedMatches = matches.filter(match => match.status === 'REJECTED');
+
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="space-y-6"
+      >
+        <Card className="p-6 bg-white/80 backdrop-blur-lg border-0 shadow-xl">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-xl font-bold flex items-center gap-2">
+              <Users className="w-5 h-5 text-indigo-600" />
+              My Matches ({matches.length})
+            </h3>
+            <Button
+              onClick={() => setShowMatchDialog(true)}
+              className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white"
+            >
+              View All Matches
+            </Button>
+          </div>
+          
+          {/* Match Statistics */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl p-6 border border-yellow-200"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-12 h-12 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-xl flex items-center justify-center">
+                  <Clock className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-gray-800">{pendingMatches.length}</p>
+                  <p className="text-sm text-gray-600">Pending</p>
+                </div>
+              </div>
+              <p className="text-xs text-gray-500">Awaiting response</p>
+            </motion.div>
+
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-12 h-12 bg-gradient-to-r from-green-400 to-emerald-500 rounded-xl flex items-center justify-center">
+                  <Trophy className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-gray-800">{completedMatches.length}</p>
+                  <p className="text-sm text-gray-600">Completed</p>
+                </div>
+              </div>
+              <p className="text-xs text-gray-500">Successfully matched</p>
+            </motion.div>
+
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              className="bg-gradient-to-br from-red-50 to-pink-50 rounded-xl p-6 border border-red-200"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-12 h-12 bg-gradient-to-r from-red-400 to-pink-500 rounded-xl flex items-center justify-center">
+                  <X className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-gray-800">{rejectedMatches.length}</p>
+                  <p className="text-sm text-gray-600">Rejected</p>
+                </div>
+              </div>
+              <p className="text-xs text-gray-500">Did not match</p>
+            </motion.div>
+          </div>
+
+          {/* Recent Matches Preview */}
+          <div>
+            <h4 className="font-semibold mb-4">Recent Matches</h4>
+            {matches.length === 0 ? (
+              <div className="text-center py-8">
+                <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500 text-lg">No matches yet</p>
+                <p className="text-gray-400">Start connecting with other pet owners!</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {matches.slice(0, 3).map((match, index) => (
+                  <motion.div
+                    key={match.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg"
+                  >
+                    <Avatar className="w-12 h-12">
+                      <AvatarImage src={match.requesterPet?.imageUrl || '/placeholder.svg'} />
+                      <AvatarFallback className="bg-gradient-to-br from-indigo-400 to-purple-500 text-white">
+                        {match.requesterPet?.name?.charAt(0) || 'P'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <p className="font-medium">{match.requesterPet?.name || 'Unknown Pet'}</p>
+                      <p className="text-sm text-gray-600">
+                        {match.requester?.displayName || match.requester?.username || 'Unknown User'}
+                      </p>
+                    </div>
+                    <Badge className={`${
+                      match.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                      match.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
+                      'bg-red-100 text-red-800'
+                    }`}>
+                      {match.status}
+                    </Badge>
+                  </motion.div>
+                ))}
+                {matches.length > 3 && (
+                  <p className="text-sm text-gray-500 text-center">
+                    and {matches.length - 3} more matches...
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        </Card>
+      </motion.div>
+    );
+  };
+
+  const MatchDialog = () => {
+    const pendingMatches = matches.filter(match => match.status === 'PENDING');
+    const completedMatches = matches.filter(match => match.status === 'APPROVED');
+    const rejectedMatches = matches.filter(match => match.status === 'REJECTED');
+
+    const getCurrentMatches = () => {
+      switch (activeMatchTab) {
+        case 'pending': return pendingMatches;
+        case 'completed': return completedMatches;
+        case 'rejected': return rejectedMatches;
+        default: return pendingMatches;
+      }
+    };
+
+    const formatTimeAgo = (dateString: string) => {
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+      
+      if (diffInMinutes < 1) return 'Just now';
+      if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+      if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
+      return `${Math.floor(diffInMinutes / 1440)}d ago`;
+    };
+
+    if (!showMatchDialog) return null;
+
+    return (
+      <AnimatePresence>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl h-[80vh] overflow-hidden"
+          >
+            {/* Header */}
+            <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6 flex justify-between items-center">
+              <h2 className="text-2xl font-bold flex items-center gap-3">
+                <Users className="w-6 h-6" />
+                My Matches ({matches.length})
+              </h2>
+              <Button
+                onClick={() => setShowMatchDialog(false)}
+                variant="ghost"
+                size="sm"
+                className="text-white hover:bg-white/20"
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+
+            {/* Tab Navigation */}
+            <div className="flex border-b border-gray-200">
+              <button
+                onClick={() => setActiveMatchTab('pending')}
+                className={`flex-1 py-4 px-6 font-medium transition-colors ${
+                  activeMatchTab === 'pending'
+                    ? 'border-b-2 border-yellow-500 text-yellow-600 bg-yellow-50'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <Clock className="w-4 h-4" />
+                  Pending ({pendingMatches.length})
+                </div>
+              </button>
+              <button
+                onClick={() => setActiveMatchTab('completed')}
+                className={`flex-1 py-4 px-6 font-medium transition-colors ${
+                  activeMatchTab === 'completed'
+                    ? 'border-b-2 border-green-500 text-green-600 bg-green-50'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <Trophy className="w-4 h-4" />
+                  Completed ({completedMatches.length})
+                </div>
+              </button>
+              <button
+                onClick={() => setActiveMatchTab('rejected')}
+                className={`flex-1 py-4 px-6 font-medium transition-colors ${
+                  activeMatchTab === 'rejected'
+                    ? 'border-b-2 border-red-500 text-red-600 bg-red-50'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <X className="w-4 h-4" />
+                  Rejected ({rejectedMatches.length})
+                </div>
+              </button>
+            </div>
+
+            {/* Match Content */}
+            <div className="flex-1 overflow-y-auto p-6">
+              {getCurrentMatches().length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    {activeMatchTab === 'pending' && <Clock className="w-8 h-8 text-gray-400" />}
+                    {activeMatchTab === 'completed' && <Trophy className="w-8 h-8 text-gray-400" />}
+                    {activeMatchTab === 'rejected' && <X className="w-8 h-8 text-gray-400" />}
+                  </div>
+                  <p className="text-gray-500 text-lg mb-2">
+                    No {activeMatchTab} matches
+                  </p>
+                  <p className="text-gray-400 text-sm">
+                    {activeMatchTab === 'pending' && 'No pending match requests at the moment'}
+                    {activeMatchTab === 'completed' && 'No completed matches yet'}
+                    {activeMatchTab === 'rejected' && 'No rejected matches'}
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {getCurrentMatches().map((match, index) => (
+                    <motion.div
+                      key={match.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex items-start gap-4">
+                        {/* Requester Pet */}
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-3">
+                            <Avatar className="w-16 h-16">
+                              <AvatarImage src={match.requesterPet?.imageUrl || '/placeholder.svg'} />
+                              <AvatarFallback className="bg-gradient-to-br from-indigo-400 to-purple-500 text-white text-lg">
+                                {match.requesterPet?.name?.charAt(0) || 'P'}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <h4 className="font-bold text-lg">{match.requesterPet?.name || 'Unknown Pet'}</h4>
+                              <p className="text-gray-600">{match.requesterPet?.breed || 'Unknown breed'}</p>
+                              <p className="text-sm text-gray-500">
+                                Owner: {match.requester?.displayName || match.requester?.username || 'Unknown User'}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          {match.message && (
+                            <div className="bg-gray-50 rounded-lg p-3 mb-3">
+                              <p className="text-sm text-gray-700">{match.message}</p>
+                            </div>
+                          )}
+
+                          <div className="flex items-center gap-4 text-sm text-gray-500">
+                            <span className="flex items-center gap-1">
+                              <Calendar className="w-4 h-4" />
+                              {formatTimeAgo(match.createdAt)}
+                            </span>
+                            <Badge className={`${
+                              match.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                              match.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
+                              'bg-red-100 text-red-800'
+                            }`}>
+                              {match.status}
+                            </Badge>
+                          </div>
+                        </div>
+
+                        {/* Your Pet */}
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-3">
+                            <Avatar className="w-16 h-16">
+                              <AvatarImage src={match.recipientPet?.imageUrl || '/placeholder.svg'} />
+                              <AvatarFallback className="bg-gradient-to-br from-pink-400 to-purple-500 text-white text-lg">
+                                {match.recipientPet?.name?.charAt(0) || 'P'}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <h4 className="font-bold text-lg">{match.recipientPet?.name || 'Your Pet'}</h4>
+                              <p className="text-gray-600">{match.recipientPet?.breed || 'Unknown breed'}</p>
+                              <p className="text-sm text-gray-500">Your pet</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </div>
+      </AnimatePresence>
+    );
+  };
+
   const renderContent = () => {
     switch (activeSection) {
       case 'personal': return renderPersonalInfo();
       case 'pets': return renderPets();
+      case 'matches': return renderMatches();
       case 'services': return renderServices();
       case 'practice': return renderPractice();
       case 'settings': return renderSettings();
@@ -861,6 +1189,9 @@ const Profile = () => {
           onPetAdded={handleAddPet} 
           existingPet={editingPet}
         />
+
+        {/* Match Dialog */}
+        <MatchDialog />
       </div>
     </TooltipProvider>
   );
