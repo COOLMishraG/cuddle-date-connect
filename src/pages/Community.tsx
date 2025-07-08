@@ -14,7 +14,6 @@ interface Post {
   content: string;
   owner: string;
   imageUri?: string;
-  likes: number;
   createdAt: string;
   updatedAt: string;
   comments?: Comment[];
@@ -45,7 +44,6 @@ const Community = () => {
   const [commentAuthors, setCommentAuthors] = useState<{ [key: string]: User }>({});
   const [postAuthors, setPostAuthors] = useState<{ [key: string]: User }>({});
   const [newComments, setNewComments] = useState<{ [key: string]: string }>({});
-  const [likingPosts, setLikingPosts] = useState<{ [key: string]: boolean }>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch posts on component mount
@@ -280,40 +278,6 @@ const Community = () => {
     }
   };
 
-  const handleLikePost = async (postId: string) => {
-    if (!currentUser) {
-      alert('Please sign in to like posts');
-      return;
-    }
-
-    if (likingPosts[postId]) {
-      return; // Already liking this post
-    }
-
-    try {
-      setLikingPosts(prev => ({ ...prev, [postId]: true }));
-      
-      // Call the backend to like the post
-      await postApi.likePost(postId);
-      
-      // Update the post's like count in local state
-      setPosts(prev => 
-        prev.map(post => 
-          post.id === postId 
-            ? { ...post, likes: post.likes + 1 }
-            : post
-        )
-      );
-      
-      console.log(`Post ${postId} liked successfully!`);
-    } catch (error) {
-      console.error(`Error liking post ${postId}:`, error);
-      alert('Failed to like post. Please try again.');
-    } finally {
-      setLikingPosts(prev => ({ ...prev, [postId]: false }));
-    }
-  };
-
   const renderUserAvatar = (username: string, size: 'sm' | 'md' | 'lg' = 'sm', userType: 'comment' | 'post' = 'comment') => {
     const user = userType === 'comment' ? commentAuthors[username] : postAuthors[username];
     const avatarSize = size === 'sm' ? 'w-6 h-6' : size === 'md' ? 'w-8 h-8' : 'w-12 h-12';
@@ -534,17 +498,9 @@ const Community = () => {
                     )}
                     
                     <div className="flex items-center space-x-6 text-sm border-t border-white/30 pt-4">
-                      <button 
-                        onClick={() => handleLikePost(post.id)}
-                        disabled={likingPosts[post.id]}
-                        className="flex items-center space-x-2 text-gray-600 hover:text-red-500 transition-colors group disabled:opacity-50"
-                      >
-                        {likingPosts[post.id] ? (
-                          <Loader className="w-5 h-5 animate-spin" />
-                        ) : (
-                          <Heart className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                        )}
-                        <span className="font-medium">{post.likes || 0} {post.likes === 1 ? 'Like' : 'Likes'}</span>
+                      <button className="flex items-center space-x-2 text-gray-600 hover:text-red-500 transition-colors group">
+                        <Heart className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                        <span className="font-medium">Like</span>
                       </button>
                       <button 
                         onClick={() => toggleComments(post.id)}

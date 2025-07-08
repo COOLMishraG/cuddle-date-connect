@@ -826,29 +826,6 @@ export const postApi = {
       console.error('Error deleting post:', error);
       throw error;
     }
-  },
-
-  // Like a post
-  likePost: async (postId: string) => {
-    try {
-      const response = await fetch(`http://localhost:3001/posts/${postId}/like`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to like post');
-      }
-      
-      return await response.json();
-    } catch (error) {
-      console.error('Error liking post:', error);
-      throw error;
-    }
   }
 };
 
