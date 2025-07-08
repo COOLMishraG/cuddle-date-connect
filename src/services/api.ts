@@ -3,6 +3,9 @@ export const API_BASE_URL = 'http://localhost:3000'; // Your backend port
 // Note: Make sure your backend redirects to the correct frontend port
 // If your frontend runs on port 8080, set FRONTEND_URL=http://localhost:8080 in your backend
 
+// Posts API Base URL - ECS public IP for post-related endpoints
+export const POSTS_API_BASE_URL = 'http://204.236.211.151:3001';
+
 import { User } from '@/types/user';
 import { Pet, PetData } from '@/types/pet';
 
@@ -641,11 +644,14 @@ export const matchApi = {
   // Approve a match request
   approveMatchRequest: async (matchId: string) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/matches/${matchId}/approve`, {
-        method: 'PATCH',
+      const response = await fetch(`${API_BASE_URL}/matches/${matchId}/respond/by-username`, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ 
+          approve: true 
+        }),
         credentials: 'include',
       });
       
@@ -662,14 +668,16 @@ export const matchApi = {
   },
 
   // Reject a match request
-  rejectMatchRequest: async (matchId: string, reason?: string) => {
+  rejectMatchRequest: async (matchId: string) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/matches/${matchId}/reject`, {
-        method: 'PATCH',
+      const response = await fetch(`${API_BASE_URL}/matches/${matchId}/respond/by-username`, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ reason }),
+        body: JSON.stringify({ 
+          approve: false 
+        }),
         credentials: 'include',
       });
       
@@ -717,7 +725,7 @@ export const postApi = {
   // Create a new post
   createPost: async (postData: { content: string; owner: string; imageUri?: string }) => {
     try {
-      const response = await fetch(`http://localhost:3001/posts`, {
+      const response = await fetch(`${POSTS_API_BASE_URL}/posts`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -741,7 +749,7 @@ export const postApi = {
   // Get all posts
   getAllPosts: async () => {
     try {
-      const response = await fetch(`http://localhost:3001/posts`, {
+      const response = await fetch(`${POSTS_API_BASE_URL}/posts`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -764,7 +772,7 @@ export const postApi = {
   // Get a specific post
   getPost: async (postId: string) => {
     try {
-      const response = await fetch(`http://localhost:3001/posts/${postId}`, {
+      const response = await fetch(`${POSTS_API_BASE_URL}/posts/${postId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -787,7 +795,7 @@ export const postApi = {
   // Update a post
   updatePost: async (postId: string, postData: { content?: string; imageUri?: string }) => {
     try {
-      const response = await fetch(`http://localhost:3001/posts/${postId}`, {
+      const response = await fetch(`${POSTS_API_BASE_URL}/posts/${postId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -811,7 +819,7 @@ export const postApi = {
   // Delete a post
   deletePost: async (postId: string) => {
     try {
-      const response = await fetch(`http://localhost:3001/posts/${postId}`, {
+      const response = await fetch(`${POSTS_API_BASE_URL}/posts/${postId}`, {
         method: 'DELETE',
         credentials: 'include',
       });
@@ -826,6 +834,29 @@ export const postApi = {
       console.error('Error deleting post:', error);
       throw error;
     }
+  },
+
+  // Like a post
+  likePost: async (postId: string) => {
+    try {
+      const response = await fetch(`${POSTS_API_BASE_URL}/posts/${postId}/like`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to like post');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error liking post:', error);
+      throw error;
+    }
   }
 };
 
@@ -834,7 +865,7 @@ export const commentApi = {
   // Create a new comment
   createComment: async (commentData: { content: string; author: string; postId: string }) => {
     try {
-      const response = await fetch(`http://localhost:3001/comments`, {
+      const response = await fetch(`${POSTS_API_BASE_URL}/comments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -858,7 +889,7 @@ export const commentApi = {
   // Get all comments
   getAllComments: async () => {
     try {
-      const response = await fetch(`http://localhost:3001/comments`, {
+      const response = await fetch(`${POSTS_API_BASE_URL}/comments`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -881,7 +912,7 @@ export const commentApi = {
   // Get comments for a specific post
   getPostComments: async (postId: string) => {
     try {
-      const response = await fetch(`http://localhost:3001/comments/post/${postId}`, {
+      const response = await fetch(`${POSTS_API_BASE_URL}/comments/post/${postId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -904,7 +935,7 @@ export const commentApi = {
   // Get a specific comment
   getComment: async (commentId: string) => {
     try {
-      const response = await fetch(`http://localhost:3001/comments/${commentId}`, {
+      const response = await fetch(`${POSTS_API_BASE_URL}/comments/${commentId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -927,7 +958,7 @@ export const commentApi = {
   // Update a comment
   updateComment: async (commentId: string, commentData: { content?: string }) => {
     try {
-      const response = await fetch(`http://localhost:3001/comments/${commentId}`, {
+      const response = await fetch(`${POSTS_API_BASE_URL}/comments/${commentId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -951,7 +982,7 @@ export const commentApi = {
   // Delete a comment
   deleteComment: async (commentId: string) => {
     try {
-      const response = await fetch(`http://localhost:3001/comments/${commentId}`, {
+      const response = await fetch(`${POSTS_API_BASE_URL}/comments/${commentId}`, {
         method: 'DELETE',
         credentials: 'include',
       });
@@ -977,7 +1008,7 @@ export const imageApi = {
       const formData = new FormData();
       formData.append('image', imageFile);
       
-      const response = await fetch(`http://localhost:3001/upload/image`, {
+      const response = await fetch(`${POSTS_API_BASE_URL}/upload/image`, {
         method: 'POST',
         body: formData,
         credentials: 'include',
