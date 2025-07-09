@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Heart, Loader2, Sparkles, Zap, Crown, Star, Trophy, Camera, Edit, Share2, Settings, User, MapPin, Mail, Phone, Calendar, Award, TrendingUp, Activity, Target, Clock, Users, DollarSign, Stethoscope, Shield, Bell, Briefcase, X } from 'lucide-react';
+import { Heart, Loader2, Sparkles, Zap, Crown, Star, Trophy, Camera, Edit, Share2, Settings, User, MapPin, Mail, Phone, Calendar, Award, TrendingUp, Activity, Target, Clock, Users, DollarSign, Shield, Bell, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Header from '../components/Header';
 import ProfileDashboard from '../components/ProfileDashboard';
@@ -43,38 +43,54 @@ const Profile = () => {
   // Form state
   const [formData, setFormData] = useState({
     name: currentUser?.name || '',
+    username: currentUser?.username || '',
+    displayName: currentUser?.displayName || '',
     email: currentUser?.email || '',
     phone: '',
     location: '',
-    bio: '',
-    role: 'owner',
-    // Sitter-specific fields
-    services: '',
-    capacity: '',
-    rate: '',
-    // Vet-specific fields
-    specialty: '',
-    license: '',
-    availability: ''
+    role: 'OWNER',
+    profileImage: currentUser?.profileImage || ''
   });
 
   const sections = [
     { id: 'personal', label: 'Personal Info', icon: User, color: 'blue' },
     { id: 'pets', label: 'My Pets', icon: Heart, color: 'pink' },
     { id: 'matches', label: 'My Matches', icon: Users, color: 'indigo' },
-    { id: 'services', label: 'Services', icon: Briefcase, color: 'green' },
-    { id: 'practice', label: 'Practice', icon: Stethoscope, color: 'purple' },
     { id: 'settings', label: 'Settings', icon: Settings, color: 'gray' }
   ];
 
   // Mouse tracking for interactive effects
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
+      // Don't track mouse movement when dialog is open
+      if (!showMatchDialog) {
+        setMousePosition({ x: e.clientX, y: e.clientY });
+      }
     };
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
+  }, [showMatchDialog]);
+
+  // Prevent body scroll when dialog is open
+  useEffect(() => {
+    if (showMatchDialog) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.pointerEvents = 'none';
+      // Re-enable pointer events for the dialog
+      const dialogElement = document.querySelector('[data-dialog="match-dialog"]');
+      if (dialogElement) {
+        (dialogElement as HTMLElement).style.pointerEvents = 'auto';
+      }
+    } else {
+      document.body.style.overflow = 'unset';
+      document.body.style.pointerEvents = 'auto';
+    }
+    
+    return () => {
+      document.body.style.overflow = 'unset';
+      document.body.style.pointerEvents = 'auto';
+    };
+  }, [showMatchDialog]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -95,10 +111,11 @@ const Profile = () => {
       const userData = {
         ...formData,
         id: currentUser.id,
-        role: formData.role.toUpperCase() as UserRole,
+        role: formData.role as UserRole,
       };
       
-      await userApi.updateUser(currentUser.id, userData);
+      await userApi.updateUserByUsername(currentUser.username, userData);
+      
       toast({ title: "Success", description: "Profile updated successfully" });
       setIsEditing(false);
       setShowConfetti(true);
@@ -156,10 +173,11 @@ const Profile = () => {
   };
 
   const getRoleBadgeStyle = (role: string) => {
-    switch (role.toLowerCase()) {
-      case 'owner': return 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white';
-      case 'sitter': return 'bg-gradient-to-r from-green-500 to-emerald-600 text-white';
-      case 'vet': return 'bg-gradient-to-r from-purple-500 to-violet-600 text-white';
+    switch (role.toUpperCase()) {
+      case 'OWNER': return 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white';
+      case 'SITTER': return 'bg-gradient-to-r from-green-500 to-emerald-600 text-white';
+      case 'VET': return 'bg-gradient-to-r from-purple-500 to-violet-600 text-white';
+      case 'SHELTER': return 'bg-gradient-to-r from-orange-500 to-red-600 text-white';
       default: return 'bg-gradient-to-r from-gray-500 to-slate-600 text-white';
     }
   };
@@ -193,23 +211,19 @@ const Profile = () => {
         const [userProfile, userPets, userMatches] = await Promise.all([
           userApi.getUserProfile(currentUser.id),
           petApi.getUserPets(currentUser.username || currentUser.id),
-          matchApi.getReceivedMatchRequests(currentUser.id)
+          matchApi.getReceivedMatchRequests(currentUser.username)
         ]);
         
         if (userProfile) {
           setFormData({
             name: userProfile.name || '',
+            username: userProfile.username || '',
+            displayName: userProfile.displayName || '',
             email: userProfile.email || '',
             phone: userProfile.phone || '',
             location: userProfile.location || '',
-            bio: userProfile.bio || '',
-            role: userProfile.role?.toLowerCase() || 'owner',
-            services: userProfile.services || '',
-            capacity: userProfile.capacity || '',
-            rate: userProfile.rate || '',
-            specialty: userProfile.specialty || '',
-            license: userProfile.license || '',
-            availability: userProfile.availability || ''
+            role: userProfile.role || 'OWNER',
+            profileImage: userProfile.profileImage || ''
           });
         }
         
@@ -285,6 +299,29 @@ const Profile = () => {
           </div>
           
           <div>
+            <label className="block text-lg font-semibold text-gray-700 mb-3">Username</label>
+            <Input
+              name="username"
+              value={formData.username}
+              onChange={handleInputChange}
+              disabled={!isEditing}
+              className="w-full text-lg p-4 h-12"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-lg font-semibold text-gray-700 mb-3">Display Name</label>
+            <Input
+              name="displayName"
+              value={formData.displayName}
+              onChange={handleInputChange}
+              disabled={!isEditing}
+              className="w-full text-lg p-4 h-12"
+              placeholder="How others see your name"
+            />
+          </div>
+          
+          <div>
             <label className="block text-lg font-semibold text-gray-700 mb-3">Email</label>
             <Input
               name="email"
@@ -320,19 +357,6 @@ const Profile = () => {
             />
           </div>
           
-          <div className="md:col-span-2">
-            <label className="block text-lg font-semibold text-gray-700 mb-3">Bio</label>
-            <Textarea
-              name="bio"
-              value={formData.bio}
-              onChange={handleInputChange}
-              disabled={!isEditing}
-              rows={5}
-              className="w-full text-lg p-4"
-              placeholder="Tell us about yourself..."
-            />
-          </div>
-          
           <div>
             <label className="block text-lg font-semibold text-gray-700 mb-3">Role</label>
             <Select
@@ -344,9 +368,10 @@ const Profile = () => {
                 <SelectValue placeholder="Select role" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="owner" className="text-lg">Pet Owner</SelectItem>
-                <SelectItem value="sitter" className="text-lg">Pet Sitter</SelectItem>
-                <SelectItem value="vet" className="text-lg">Veterinarian</SelectItem>
+                <SelectItem value="OWNER" className="text-lg">Pet Owner</SelectItem>
+                <SelectItem value="SITTER" className="text-lg">Pet Sitter</SelectItem>
+                <SelectItem value="VET" className="text-lg">Veterinarian</SelectItem>
+                <SelectItem value="SHELTER" className="text-lg">Pet Shelter</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -434,176 +459,6 @@ const Profile = () => {
                 </div>
               </motion.div>
             ))}
-          </div>
-        )}
-      </Card>
-    </motion.div>
-  );
-
-  const renderServices = () => (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-6"
-    >
-      <Card className="p-6 bg-white/80 backdrop-blur-lg border-0 shadow-xl">
-        <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
-          <Briefcase className="w-5 h-5 text-green-600" />
-          Services & Offerings
-        </h3>
-        
-        {formData.role === 'sitter' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Services Offered</label>
-              <Textarea
-                name="services"
-                value={formData.services}
-                onChange={handleInputChange}
-                disabled={!isEditing}
-                rows={3}
-                className="w-full"
-                placeholder="Pet sitting, dog walking, overnight care..."
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Capacity</label>
-              <Input
-                name="capacity"
-                value={formData.capacity}
-                onChange={handleInputChange}
-                disabled={!isEditing}
-                className="w-full"
-                placeholder="Number of pets you can handle"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Hourly Rate ($)</label>
-              <Input
-                name="rate"
-                value={formData.rate}
-                onChange={handleInputChange}
-                disabled={!isEditing}
-                className="w-full"
-                placeholder="Your hourly rate"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Availability</label>
-              <Input
-                name="availability"
-                value={formData.availability}
-                onChange={handleInputChange}
-                disabled={!isEditing}
-                className="w-full"
-                placeholder="Available times and days"
-              />
-            </div>
-          </div>
-        )}
-        
-        {formData.role === 'owner' && (
-          <div className="text-center py-12">
-            <Briefcase className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500 text-lg">Services section is for pet sitters</p>
-            <p className="text-gray-400">Switch to sitter role to access service settings</p>
-          </div>
-        )}
-        
-        {formData.role === 'vet' && (
-          <div className="text-center py-12">
-            <Stethoscope className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500 text-lg">Use the Practice section for veterinary services</p>
-            <p className="text-gray-400">Manage your veterinary practice details there</p>
-          </div>
-        )}
-        
-        {isEditing && formData.role === 'sitter' && (
-          <div className="mt-6 flex gap-4">
-            <Button onClick={handleSaveProfile} className="bg-gradient-to-r from-green-500 to-emerald-500 text-white">
-              Save Changes
-            </Button>
-            <Button onClick={() => setIsEditing(false)} variant="outline">
-              Cancel
-            </Button>
-          </div>
-        )}
-      </Card>
-    </motion.div>
-  );
-
-  const renderPractice = () => (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-6"
-    >
-      <Card className="p-6 bg-white/80 backdrop-blur-lg border-0 shadow-xl">
-        <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
-          <Stethoscope className="w-5 h-5 text-purple-600" />
-          Veterinary Practice
-        </h3>
-        
-        {formData.role === 'vet' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Specialty</label>
-              <Input
-                name="specialty"
-                value={formData.specialty}
-                onChange={handleInputChange}
-                disabled={!isEditing}
-                className="w-full"
-                placeholder="Small animals, exotic pets, surgery..."
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">License Number</label>
-              <Input
-                name="license"
-                value={formData.license}
-                onChange={handleInputChange}
-                disabled={!isEditing}
-                className="w-full"
-                placeholder="Your veterinary license number"
-              />
-            </div>
-            
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Office Hours & Availability</label>
-              <Textarea
-                name="availability"
-                value={formData.availability}
-                onChange={handleInputChange}
-                disabled={!isEditing}
-                rows={3}
-                className="w-full"
-                placeholder="Mon-Fri 9AM-6PM, Emergency calls available..."
-              />
-            </div>
-          </div>
-        )}
-        
-        {formData.role !== 'vet' && (
-          <div className="text-center py-12">
-            <Stethoscope className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500 text-lg">Practice section is for veterinarians</p>
-            <p className="text-gray-400">Switch to veterinarian role to access practice settings</p>
-          </div>
-        )}
-        
-        {isEditing && formData.role === 'vet' && (
-          <div className="mt-6 flex gap-4">
-            <Button onClick={handleSaveProfile} className="bg-gradient-to-r from-purple-500 to-violet-500 text-white">
-              Save Changes
-            </Button>
-            <Button onClick={() => setIsEditing(false)} variant="outline">
-              Cancel
-            </Button>
           </div>
         )}
       </Card>
@@ -865,12 +720,31 @@ const Profile = () => {
 
     return (
       <AnimatePresence>
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div 
+          className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+          style={{ 
+            pointerEvents: 'auto',
+            zIndex: 9999
+          }}
+          data-dialog="match-dialog"
+          onMouseMove={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            // Only close if clicking the backdrop itself, not the modal content
+            if (e.target === e.currentTarget) {
+              setShowMatchDialog(false);
+            }
+          }}
+        >
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl h-[80vh] overflow-hidden"
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl h-[80vh] overflow-hidden relative"
+            style={{ pointerEvents: 'auto' }}
+            onClick={(e) => e.stopPropagation()}
+            onMouseMove={(e) => e.stopPropagation()}
+            onMouseEnter={(e) => e.stopPropagation()}
+            onMouseLeave={(e) => e.stopPropagation()}
           >
             {/* Header */}
             <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6 flex justify-between items-center">
@@ -1032,8 +906,6 @@ const Profile = () => {
       case 'personal': return renderPersonalInfo();
       case 'pets': return renderPets();
       case 'matches': return renderMatches();
-      case 'services': return renderServices();
-      case 'practice': return renderPractice();
       case 'settings': return renderSettings();
       default: return renderPersonalInfo();
     }

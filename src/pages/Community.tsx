@@ -1,4 +1,3 @@
-
 import Header from '../components/Header';
 import { Heart, Users, MessageSquare, Calendar, MapPin, Star, Image, Send, Loader } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -17,6 +16,8 @@ interface Post {
   createdAt: string;
   updatedAt: string;
   comments?: Comment[];
+  likes?: number;
+  likedBy?: string[];
 }
 
 interface Comment {
@@ -44,6 +45,9 @@ const Community = () => {
   const [commentAuthors, setCommentAuthors] = useState<{ [key: string]: User }>({});
   const [postAuthors, setPostAuthors] = useState<{ [key: string]: User }>({});
   const [newComments, setNewComments] = useState<{ [key: string]: string }>({});
+  const [likeCounts, setLikeCounts] = useState<{ [key: string]: number }>({});
+  const [likedPosts, setLikedPosts] = useState<{ [key: string]: boolean }>({});
+  const [likingPosts, setLikingPosts] = useState<{ [key: string]: boolean }>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch posts on component mount
@@ -62,6 +66,20 @@ const Community = () => {
       );
       
       setPosts(sortedPosts);
+      
+      // Initialize like counts and liked status for each post
+      const initialLikeCounts: { [key: string]: number } = {};
+      const initialLikedPosts: { [key: string]: boolean } = {};
+      
+      sortedPosts.forEach((post: Post) => {
+        initialLikeCounts[post.id] = post.likes || 0;
+        initialLikedPosts[post.id] = post.likedBy?.includes(
+          currentUser?.displayName || currentUser?.username || currentUser?.email || ''
+        ) || false;
+      });
+      
+      setLikeCounts(initialLikeCounts);
+      setLikedPosts(initialLikedPosts);
       
       // Fetch comment counts for each post
       const counts: { [key: string]: number } = {};
@@ -275,6 +293,34 @@ const Community = () => {
       } finally {
         setLoadingComments(prev => ({ ...prev, [postId]: false }));
       }
+    }
+  };
+
+  const handleLikePost = async (postId: string) => {
+    if (!currentUser) {
+      alert('Please sign in to like posts');
+      return;
+    }
+
+    try {
+      setLikingPosts(prev => ({ ...prev, [postId]: true }));
+      
+      // Call the like API
+      await postApi.likePost(postId);
+      
+      // Update like state
+      const wasLiked = likedPosts[postId];
+      setLikedPosts(prev => ({ ...prev, [postId]: !wasLiked }));
+      setLikeCounts(prev => ({ 
+        ...prev, 
+        [postId]: wasLiked ? (prev[postId] || 1) - 1 : (prev[postId] || 0) + 1 
+      }));
+      
+    } catch (error) {
+      console.error('Error liking post:', error);
+      alert('Failed to like post. Please try again.');
+    } finally {
+      setLikingPosts(prev => ({ ...prev, [postId]: false }));
     }
   };
 
@@ -498,9 +544,21 @@ const Community = () => {
                     )}
                     
                     <div className="flex items-center space-x-6 text-sm border-t border-white/30 pt-4">
-                      <button className="flex items-center space-x-2 text-gray-600 hover:text-red-500 transition-colors group">
-                        <Heart className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                        <span className="font-medium">Like</span>
+                      <button 
+                        onClick={() => handleLikePost(post.id)}
+                        disabled={likingPosts[post.id]}
+                        className={`flex items-center space-x-2 transition-colors group ${
+                          likedPosts[post.id] 
+                            ? 'text-red-500' 
+                            : 'text-gray-600 hover:text-red-500'
+                        }`}
+                      >
+                        <Heart className={`w-5 h-5 group-hover:scale-110 transition-transform ${
+                          likedPosts[post.id] ? 'fill-current' : ''
+                        }`} />
+                        <span className="font-medium">
+                          {likingPosts[post.id] ? 'Liking...' : `${likeCounts[post.id] || 0} Likes`}
+                        </span>
                       </button>
                       <button 
                         onClick={() => toggleComments(post.id)}

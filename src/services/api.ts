@@ -586,13 +586,13 @@ export const matchApi = {
   },
 
   // Get match requests received by the current user
-  getReceivedMatchRequests: async (userId?: string, status?: string) => {
+  getReceivedMatchRequests: async (userName?: string, status?: string) => {
     try {
       let url = `${API_BASE_URL}/matches/received`;
-      
-      // If userId is provided, use the specific endpoint
-      if (userId) {
-        url = `${API_BASE_URL}/matches/received/${userId}`;
+
+      // If userName is provided, use the specific endpoint
+      if (userName) {
+        url = `${API_BASE_URL}/matches/received/${userName}`;
         if (status) {
           url += `?status=${status}`;
         }
@@ -718,6 +718,30 @@ export const vetApi = {
       throw error;
     }
   },
+
+  // Save pet sitter service details
+  saveSitterService: async (username: string, serviceData: any) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/pet-sitter-spec/${username}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(serviceData),
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to save sitter service details');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error saving sitter service:', error);
+      throw error;
+    }
+  }
 };
 
 // Post-related API calls
