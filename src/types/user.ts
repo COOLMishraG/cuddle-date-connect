@@ -10,22 +10,17 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  username?: string;
+  username: string;
   displayName?: string;
-  profileImage?: string;
-  role: UserRole;
+  password?: string;
   phone?: string;
   location?: string;
-  bio?: string;
+  role: UserRole;
+  profileImage?: string;
+  isVerified?: boolean;
+  googleId?: string;
   createdAt?: Date;
   updatedAt?: Date;
-
-  // Vet-specific fields
-  specialty?: string;
-  experience?: string;
-  rating?: number;
-  verified?: boolean;
-  available?: boolean;
 }
 
 // Auth response type

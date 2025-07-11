@@ -302,13 +302,15 @@ const Community = () => {
       return;
     }
 
+    const currentUserIdentifier = currentUser.displayName || currentUser.username || currentUser.email;
+    
     try {
       setLikingPosts(prev => ({ ...prev, [postId]: true }));
       
-      // Call the like API
+      // Call the API to like the post
       await postApi.likePost(postId);
       
-      // Update like state
+      // Update local state optimistically
       const wasLiked = likedPosts[postId];
       setLikedPosts(prev => ({ ...prev, [postId]: !wasLiked }));
       setLikeCounts(prev => ({ 
@@ -316,6 +318,23 @@ const Community = () => {
         [postId]: wasLiked ? (prev[postId] || 1) - 1 : (prev[postId] || 0) + 1 
       }));
       
+      // Update the post in the posts array
+      setPosts(prevPosts => 
+        prevPosts.map(post => {
+          if (post.id === postId) {
+            const updatedLikedBy = wasLiked 
+              ? (post.likedBy || []).filter(user => user !== currentUserIdentifier)
+              : [...(post.likedBy || []), currentUserIdentifier];
+            
+            return {
+              ...post,
+              likes: wasLiked ? (post.likes || 1) - 1 : (post.likes || 0) + 1,
+              likedBy: updatedLikedBy
+            };
+          }
+          return post;
+        })
+      );
     } catch (error) {
       console.error('Error liking post:', error);
       alert('Failed to like post. Please try again.');

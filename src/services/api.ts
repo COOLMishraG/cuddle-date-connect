@@ -4,7 +4,7 @@ export const API_BASE_URL = 'http://localhost:3000'; // Your backend port
 // If your frontend runs on port 8080, set FRONTEND_URL=http://localhost:8080 in your backend
 
 // Posts API Base URL - ECS public IP for post-related endpoints
-export const POSTS_API_BASE_URL = 'http://204.236.211.151:3001';
+export const POSTS_API_BASE_URL = 'http://35.170.187.9:3001';
 
 import { User } from '@/types/user';
 import { Pet, PetData } from '@/types/pet';
@@ -171,7 +171,51 @@ export const userApi = {
       throw error;
     }
   },
-  
+
+  getAllSitters: async (): Promise<User[]> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/users/sitters`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to get all sitters');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error getting all sitters:', error);
+      throw error;
+    }
+  },
+
+  getSitterSpecByUsername: async (username: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/sitter-spec/${username}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to get sitter spec by username');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error getting sitter spec by username:', error);
+      throw error;
+    }
+  },
+
   // Check if username or email exists (for registration validation)
   checkUserExists: async (email: string, username: string) => {
     try {
@@ -739,6 +783,53 @@ export const vetApi = {
       return await response.json();
     } catch (error) {
       console.error('Error saving sitter service:', error);
+      throw error;
+    }
+  },
+
+  // Update sitter spec details
+  updateSitterSpec: async (username: string, sitterSpecData: any) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/sitter-spec/${username}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(sitterSpecData),
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update sitter spec details');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error updating sitter spec:', error);
+      throw error;
+    }
+  },
+
+  // Get sitter spec details
+  getSitterSpec: async (username: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/sitter-spec/${username}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to get sitter spec details');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error getting sitter spec:', error);
       throw error;
     }
   }

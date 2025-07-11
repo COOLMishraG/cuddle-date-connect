@@ -1,83 +1,96 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Header from '../components/Header';
-import { Users, Star, Calendar, MapPin, Shield, Heart, Clock, CheckCircle, Filter, Search } from 'lucide-react';
+import { Users, Star, Calendar, MapPin, Shield, Heart, Clock, CheckCircle, Filter, Search, Loader } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import BookSitting from '@/components/BookSitting';
+import { userApi } from '@/services/api';
+import { useAuth } from '@/contexts/AuthContext';
+import { User } from '@/types/user';
 
 const PetSitting = () => {
+  const { currentUser } = useAuth();
   const [showBookForm, setShowBookForm] = useState(false);
   const [selectedSitter, setSelectedSitter] = useState<{ id: string; name: string } | null>(null);
-  
-  const sitters = [
-    {
-      id: '1',
-      name: 'Sarah Johnson',
-      experience: '5+ years',
-      location: 'San Francisco, CA',
-      rating: 4.9,
-      reviewCount: 127,
-      price: '$35/day',
-      image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=300&h=300&fit=crop&crop=face&auto=format',
-      available: true,
-      verified: true,
-      specialties: ['Dogs', 'Cats', 'Senior Pets'],
-      description: 'Passionate pet lover with 5+ years of experience caring for dogs and cats of all sizes.',
-      responseTime: '1 hour',
-      petsSatCount: 200
-    },
-    {
-      id: '2',
-      name: 'Marcus Williams',
-      experience: '3+ years',
-      location: 'Oakland, CA',
-      rating: 4.8,
-      reviewCount: 89,
-      price: '$28/day',
-      image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&crop=face&auto=format',
-      available: true,
-      verified: true,
-      specialties: ['Large Dogs', 'Training'],
-      description: 'Former dog trainer specializing in large breeds and behavioral support.',
-      responseTime: '2 hours',
-      petsSatCount: 150
-    },
-    {
-      id: '3',
-      name: 'Emily Chen',
-      experience: '4+ years',
-      location: 'Berkeley, CA',
-      rating: 4.9,
-      reviewCount: 156,
-      price: '$32/day',
-      image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=300&h=300&fit=crop&crop=face&auto=format',
-      available: false,
-      verified: true,
-      specialties: ['Cats', 'Small Dogs', 'Medication'],
-      description: 'Veterinary assistant with expertise in pet medical care and medication administration.',
-      responseTime: '30 minutes',
-      petsSatCount: 180
-    },
-    {
-      id: '4',
-      name: 'David Rodriguez',
-      experience: '6+ years',
-      location: 'San Jose, CA',
-      rating: 5.0,
-      reviewCount: 234,
-      price: '$42/day',
-      image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=300&h=300&fit=crop&crop=face&auto=format',
-      available: true,
-      verified: true,
-      specialties: ['All Pets', 'Overnight Care', 'Exercise'],
-      description: 'Professional pet sitter offering overnight care and daily exercise programs.',
-      responseTime: '45 minutes',
-      petsSatCount: 300
-    }
-  ];
+  const [sitters, setSitters] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Template for users with missing details
+  const sitterTemplate = {
+    experience: '2+ years',
+    rating: 4.5,
+    reviewCount: 25,
+    price: '$30/day',
+    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&crop=face&auto=format',
+    available: true,
+    verified: true,
+    specialties: ['Dogs', 'Cats'],
+    description: 'Experienced pet sitter dedicated to providing loving care for your furry friends.',
+    responseTime: '2 hours',
+    petsSatCount: 50
+  };
+
+  useEffect(() => {
+    const fetchSitters = async () => {
+      try {
+        setLoading(true);
+        const allSitters = await userApi.getAllSitters();
+        
+        // Filter out the current user and fetch sitter spec data for each sitter
+        const filteredSitters = allSitters.filter(sitter => sitter.username !== currentUser?.username);
+        
+        // Fetch sitter spec data for each sitter and merge with user data
+        const sittersWithSpecs = await Promise.all(
+          filteredSitters.map(async (sitter) => {
+            let sitterSpec = null;
+            
+            try {
+              // Try to fetch sitter spec data
+              sitterSpec = await userApi.getSitterSpecByUsername(sitter.username);
+            } catch (error) {
+              console.log(`No sitter spec found for ${sitter.username}, using template data`);
+            }
+            
+            return {
+              // Fields from User entity
+              id: sitter.id,
+              name: sitter.name || sitter.displayName || sitter.username,
+              location: sitter.location || 'Location not specified',
+              image: sitter.profileImage || sitterTemplate.image,
+              verified: sitter.isVerified || false,
+              username: sitter.username,
+              email: sitter.email,
+              phone: sitter.phone,
+              
+              // Fields from SitterSpec entity (if available) or template
+              experience: sitterSpec?.experience ? `${sitterSpec.experience} years` : sitterTemplate.experience,
+              rating: sitterSpec?.rating || sitterTemplate.rating,
+              reviewCount: sitterTemplate.reviewCount, // This field doesn't exist in SitterSpec
+              price: sitterSpec?.price ? `$${sitterSpec.price}/day` : sitterTemplate.price,
+              available: sitterSpec?.available !== undefined ? sitterSpec.available : sitterTemplate.available,
+              specialties: sitterSpec?.specialties && sitterSpec.specialties.length > 0 ? sitterSpec.specialties : sitterTemplate.specialties,
+              description: sitterSpec?.description || sitterTemplate.description,
+              responseTime: sitterSpec?.responseTime || sitterTemplate.responseTime,
+              petsSatCount: sitterSpec?.petSatCount || sitterTemplate.petsSatCount
+            };
+          })
+        );
+        
+        setSitters(sittersWithSpecs);
+      } catch (error) {
+        console.error('Error fetching sitters:', error);
+        setError('Failed to load sitters. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSitters();
+  }, [currentUser]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
@@ -139,7 +152,12 @@ const PetSitting = () => {
           <div className="flex flex-wrap items-center justify-between mb-8 gap-4">
             <div>
               <h2 className="text-2xl font-bold text-slate-800 mb-2">Available Pet Sitters</h2>
-              <p className="text-slate-600">{sitters.filter(s => s.available).length} sitters available in your area</p>
+              <p className="text-slate-600">
+                {loading 
+                  ? 'Loading sitters...' 
+                  : `${sitters.filter(s => s.available).length} sitters available in your area`
+                }
+              </p>
             </div>
             
             <div className="flex items-center gap-4">
@@ -156,9 +174,35 @@ const PetSitting = () => {
           </div>
 
           {/* Sitters Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {loading ? (
+            <div className="flex justify-center items-center py-12">
+              <Loader className="w-8 h-8 animate-spin text-indigo-600" />
+              <span className="ml-2 text-slate-600">Loading sitters...</span>
+            </div>
+          ) : error ? (
+            <div className="text-center py-12">
+              <p className="text-red-600 mb-4">{error}</p>
+              <Button onClick={() => window.location.reload()}>Retry</Button>
+            </div>
+          ) : sitters.length === 0 ? (
+            <div className="text-center py-12">
+              <Heart className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">No sitters available</h3>
+              <p className="text-gray-500">Check back later for new sitters in your area!</p>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {sitters.map((sitter) => (
-              <Card key={sitter.id} className={`group overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 ${!sitter.available ? 'opacity-60' : ''}`}>
+              <Card key={sitter.id} className={`group overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 ${!sitter.available ? 'relative' : ''}`}>
+                {/* Glass filter overlay for unavailable sitters */}
+                {!sitter.available && (
+                  <div className="absolute inset-0 bg-gray-500/30 backdrop-blur-[2px] z-10 flex items-center justify-center">
+                    <div className="bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg">
+                      <span className="text-gray-700 font-semibold text-sm">Currently Busy</span>
+                    </div>
+                  </div>
+                )}
+                
                 <div className="relative">
                   <img 
                     src={sitter.image} 
@@ -204,7 +248,15 @@ const PetSitting = () => {
                     </div>
                   </div>
                   
-                  <p className="text-sm text-slate-600 mb-4 line-clamp-2">{sitter.description}</p>
+                  <p className="text-sm text-slate-600 mb-4 h-10 overflow-hidden leading-5"
+                     style={{ 
+                       display: '-webkit-box',
+                       WebkitLineClamp: 2,
+                       WebkitBoxOrient: 'vertical'
+                     }}
+                  >
+                    {sitter.description}
+                  </p>
                   
                   <div className="flex flex-wrap gap-1 mb-4">
                     {sitter.specialties.map((specialty, idx) => (
@@ -240,7 +292,8 @@ const PetSitting = () => {
                 </CardContent>
               </Card>
             ))}
-          </div>
+            </div>
+          )}
         </div>
       </section>
 
