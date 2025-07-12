@@ -50,7 +50,7 @@ const PetsTab = ({
             <Heart className="w-10 h-10 text-indigo-400" />
           </div>
           <h3 className="text-xl font-semibold text-gray-700 mb-2">No pets yet</h3>
-          <p className="text-gray-500 mb-6">Add your first pet to get started with CuddleDateConnect</p>
+          <p className="text-gray-500 mb-6">Add your first pet to get started with Pet Match</p>
           <Button 
             onClick={() => {
               setEditingPet(null);

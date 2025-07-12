@@ -159,7 +159,7 @@ const Index = () => {
       name: 'Sarah Chen',
       role: 'Dog Owner',
       image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=80&h=80&fit=crop&crop=face&auto=format',
-      text: 'CuddleDateConnect transformed how I care for my rescue dog. The real-time updates and professional sitters give me complete peace of mind.',
+      text: 'Pet Match transformed how I care for my rescue dog. The real-time updates and professional sitters give me complete peace of mind.',
       rating: 5,
       location: 'San Francisco, CA'
     },
@@ -484,7 +484,7 @@ const Index = () => {
             </h2>
             <p className="text-xl text-slate-600 max-w-3xl mx-auto">
               Don't just take our word for it. Here's what thousands of pet families 
-              and professional caregivers say about their CuddleDateConnect experience.
+              and professional caregivers say about their Pet Match experience.
             </p>
           </div>
 
@@ -603,7 +603,7 @@ const Index = () => {
                   <PawPrint className="w-7 h-7 text-white" />
                 </div>
                 <span className="text-2xl font-bold text-gradient-brand">
-                  CuddleDateConnect
+                  Pet Match
                 </span>
               </div>
               <p className="text-slate-400 mb-6 leading-relaxed max-w-md">
@@ -659,7 +659,7 @@ const Index = () => {
           
           <div className="border-t border-slate-800 mt-16 pt-8 flex flex-col md:flex-row justify-between items-center">
             <p className="text-slate-400 text-center md:text-left">
-              &copy; 2025 CuddleDateConnect. All rights reserved. Made with ❤️ for pet lovers everywhere.
+              &copy; 2025 Pet Match. All rights reserved. Made with ❤️ for pet lovers everywhere.
             </p>
             <div className="flex items-center space-x-6 mt-4 md:mt-0">
               <a href="#" className="text-slate-400 hover:text-white transition-colors text-sm">Terms</a>
