@@ -40,47 +40,33 @@ const PetSitting = () => {
         setLoading(true);
         const allSitters = await userApi.getAllSitters();
         
-        // Filter out the current user and fetch sitter spec data for each sitter
-        const filteredSitters = allSitters.filter(sitter => sitter.username !== currentUser?.username);
-        
-        // Fetch sitter spec data for each sitter and merge with user data
-        const sittersWithSpecs = await Promise.all(
-          filteredSitters.map(async (sitter) => {
-            let sitterSpec = null;
+        // Filter out the current user and transform the data
+        const filteredSitters = allSitters
+          .filter(sitter => sitter.username !== currentUser?.username)
+          .map(sitter => ({
+            // Fields from User entity
+            id: sitter.id,
+            name: sitter.name || sitter.displayName || sitter.username,
+            location: sitter.location || 'Location not specified',
+            image: sitter.profileImage || sitterTemplate.image,
+            verified: sitter.isVerified || false, // Use isVerified from User entity
+            username: sitter.username,
+            email: sitter.email,
+            phone: sitter.phone,
             
-            try {
-              // Try to fetch sitter spec data
-              sitterSpec = await userApi.getSitterSpecByUsername(sitter.username);
-            } catch (error) {
-              console.log(`No sitter spec found for ${sitter.username}, using template data`);
-            }
-            
-            return {
-              // Fields from User entity
-              id: sitter.id,
-              name: sitter.name || sitter.displayName || sitter.username,
-              location: sitter.location || 'Location not specified',
-              image: sitter.profileImage || sitterTemplate.image,
-              verified: sitter.isVerified || false,
-              username: sitter.username,
-              email: sitter.email,
-              phone: sitter.phone,
-              
-              // Fields from SitterSpec entity (if available) or template
-              experience: sitterSpec?.experience ? `${sitterSpec.experience} years` : sitterTemplate.experience,
-              rating: sitterSpec?.rating || sitterTemplate.rating,
-              reviewCount: sitterTemplate.reviewCount, // This field doesn't exist in SitterSpec
-              price: sitterSpec?.price ? `$${sitterSpec.price}/day` : sitterTemplate.price,
-              available: sitterSpec?.available !== undefined ? sitterSpec.available : sitterTemplate.available,
-              specialties: sitterSpec?.specialties && sitterSpec.specialties.length > 0 ? sitterSpec.specialties : sitterTemplate.specialties,
-              description: sitterSpec?.description || sitterTemplate.description,
-              responseTime: sitterSpec?.responseTime || sitterTemplate.responseTime,
-              petsSatCount: sitterSpec?.petSatCount || sitterTemplate.petsSatCount
-            };
-          })
-        );
+            // Fields from template (not in User entity)
+            experience: sitterTemplate.experience,
+            rating: sitterTemplate.rating,
+            reviewCount: sitterTemplate.reviewCount,
+            price: sitterTemplate.price,
+            available: sitterTemplate.available,
+            specialties: sitterTemplate.specialties,
+            description: sitterTemplate.description,
+            responseTime: sitterTemplate.responseTime,
+            petsSatCount: sitterTemplate.petsSatCount
+          }));
         
-        setSitters(sittersWithSpecs);
+        setSitters(filteredSitters);
       } catch (error) {
         console.error('Error fetching sitters:', error);
         setError('Failed to load sitters. Please try again later.');
@@ -193,16 +179,7 @@ const PetSitting = () => {
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {sitters.map((sitter) => (
-              <Card key={sitter.id} className={`group overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 ${!sitter.available ? 'relative' : ''}`}>
-                {/* Glass filter overlay for unavailable sitters */}
-                {!sitter.available && (
-                  <div className="absolute inset-0 bg-gray-500/30 backdrop-blur-[2px] z-10 flex items-center justify-center">
-                    <div className="bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg">
-                      <span className="text-gray-700 font-semibold text-sm">Currently Busy</span>
-                    </div>
-                  </div>
-                )}
-                
+              <Card key={sitter.id} className={`group overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 ${!sitter.available ? 'opacity-60' : ''}`}>
                 <div className="relative">
                   <img 
                     src={sitter.image} 
@@ -248,15 +225,7 @@ const PetSitting = () => {
                     </div>
                   </div>
                   
-                  <p className="text-sm text-slate-600 mb-4 h-10 overflow-hidden leading-5"
-                     style={{ 
-                       display: '-webkit-box',
-                       WebkitLineClamp: 2,
-                       WebkitBoxOrient: 'vertical'
-                     }}
-                  >
-                    {sitter.description}
-                  </p>
+                  <p className="text-sm text-slate-600 mb-4 line-clamp-2">{sitter.description}</p>
                   
                   <div className="flex flex-wrap gap-1 mb-4">
                     {sitter.specialties.map((specialty, idx) => (

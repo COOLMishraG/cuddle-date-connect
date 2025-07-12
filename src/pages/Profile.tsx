@@ -40,7 +40,7 @@ const Profile = () => {
   const [showMatchDialog, setShowMatchDialog] = useState(false);
   const [activeMatchTab, setActiveMatchTab] = useState('pending');
   
-  // Form state - User entity fields + sitter spec fields + vet fields
+  // Form state - User entity fields + additional fields for services/practice
   const [formData, setFormData] = useState({
     // User entity fields
     name: currentUser?.name || '',
@@ -48,24 +48,14 @@ const Profile = () => {
     phone: '',
     location: '',
     role: 'owner',
-    // SitterSpec entity fields (separate from User)
-    price: '',
-    rating: '',
-    available: true,
-    description: '',
-    specialties: [] as string[],
-    petSatCount: '',
-    experience: '',
-    responseTime: '',
-    // Vet-specific fields (for future implementation)
+    // Additional fields for services/practice (separate API endpoints)
+    services: '',
+    capacity: '',
+    rate: '',
     specialty: '',
     license: '',
     availability: ''
   });
-
-  // State for sitter spec editing
-  const [sitterSpecData, setSitterSpecData] = useState<any>(null);
-  const [isEditingSitterSpec, setIsEditingSitterSpec] = useState(false);
 
   const sections = [
     { id: 'personal', label: 'Personal Info', icon: User, color: 'blue' },
@@ -236,36 +226,21 @@ const Profile = () => {
         ]);
         
         if (userProfile) {
-          setFormData(prev => ({
-            ...prev,
+          setFormData({
             // User entity fields
             name: userProfile.name || '',
             email: userProfile.email || '',
             phone: userProfile.phone || '',
             location: userProfile.location || '',
-            role: userProfile.role?.toLowerCase() || 'owner'
-          }));
-        }
-        
-        // Fetch sitter spec data if user is a sitter
-        if (userProfile?.role?.toLowerCase() === 'sitter' && currentUser.username) {
-          try {
-            const sitterSpec = await vetApi.getSitterSpec(currentUser.username);
-            setSitterSpecData(sitterSpec);
-            setFormData(prev => ({
-              ...prev,
-              price: sitterSpec.price?.toString() || '',
-              rating: sitterSpec.rating?.toString() || '',
-              available: sitterSpec.available !== undefined ? sitterSpec.available : true,
-              description: sitterSpec.description || '',
-              specialties: sitterSpec.specialties || [],
-              petSatCount: sitterSpec.petSatCount?.toString() || '',
-              experience: sitterSpec.experience?.toString() || '',
-              responseTime: sitterSpec.responseTime || ''
-            }));
-          } catch (error) {
-            console.log('No sitter spec found for user, will create new one when saving');
-          }
+            role: userProfile.role?.toLowerCase() || 'owner',
+            // Additional fields (may be empty if not returned from User API)
+            services: userProfile.services || '',
+            capacity: userProfile.capacity || '',
+            rate: userProfile.rate || '',
+            specialty: userProfile.specialty || '',
+            license: userProfile.license || '',
+            availability: userProfile.availability || ''
+          });
         }
         
         setPets(userPets || []);
@@ -280,45 +255,6 @@ const Profile = () => {
 
     fetchUserData();
   }, [currentUser]);
-
-  const handleSaveSitterSpec = async () => {
-    try {
-      if (!currentUser?.username) {
-        toast({ title: "Error", description: "Please log in again", variant: "destructive" });
-        return;
-      }
-      
-      const sitterSpecPayload = {
-        price: parseFloat(formData.price) || 0,
-        rating: parseFloat(formData.rating) || 0,
-        available: formData.available,
-        description: formData.description,
-        specialties: formData.specialties,
-        petSatCount: parseInt(formData.petSatCount) || 0,
-        experience: parseInt(formData.experience) || 0,
-        responseTime: formData.responseTime
-      };
-      
-      await vetApi.updateSitterSpec(currentUser.username, sitterSpecPayload);
-      
-      toast({ title: "Success", description: "Sitter services updated successfully" });
-      setIsEditingSitterSpec(false);
-      setShowConfetti(true);
-      setTimeout(() => setShowConfetti(false), 3000);
-    } catch (error) {
-      console.error('Error updating sitter spec:', error);
-      toast({ title: "Error", description: "Failed to update sitter services", variant: "destructive" });
-    }
-  };
-
-  const handleSpecialtyChange = (specialty: string, checked: boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      specialties: checked 
-        ? [...prev.specialties, specialty]
-        : prev.specialties.filter(s => s !== specialty)
-    }));
-  };
 
   if (authLoading || isLoading) {
     return (
@@ -541,147 +477,61 @@ const Profile = () => {
       className="space-y-6"
     >
       <Card className="p-6 bg-white/80 backdrop-blur-lg border-0 shadow-xl">
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-xl font-bold flex items-center gap-2">
-            <Briefcase className="w-5 h-5 text-green-600" />
-            Services & Offerings
-          </h3>
-          {formData.role === 'sitter' && (
-            <Button
-              onClick={() => setIsEditingSitterSpec(!isEditingSitterSpec)}
-              variant={isEditingSitterSpec ? "outline" : "default"}
-              className="bg-gradient-to-r from-green-500 to-emerald-500 text-white"
-            >
-              <Edit className="w-4 h-4 mr-2" />
-              {isEditingSitterSpec ? 'Cancel' : 'Edit Services'}
-            </Button>
-          )}
-        </div>
+        <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
+          <Briefcase className="w-5 h-5 text-green-600" />
+          Services & Offerings
+        </h3>
         
         {formData.role === 'sitter' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Services Offered</label>
               <Textarea
-                name="description"
-                value={formData.description}
+                name="services"
+                value={formData.services}
                 onChange={handleInputChange}
-                disabled={!isEditingSitterSpec}
+                disabled={!isEditing}
                 rows={3}
                 className="w-full"
-                placeholder="Describe your pet sitting services..."
+                placeholder="Pet sitting, dog walking, overnight care..."
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Price (per day)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Capacity</label>
               <Input
-                name="price"
-                type="number"
-                value={formData.price}
+                name="capacity"
+                value={formData.capacity}
                 onChange={handleInputChange}
-                disabled={!isEditingSitterSpec}
+                disabled={!isEditing}
                 className="w-full"
-                placeholder="30"
+                placeholder="Number of pets you can handle"
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Experience (years)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Hourly Rate ($)</label>
               <Input
-                name="experience"
-                type="number"
-                value={formData.experience}
+                name="rate"
+                value={formData.rate}
                 onChange={handleInputChange}
-                disabled={!isEditingSitterSpec}
+                disabled={!isEditing}
                 className="w-full"
-                placeholder="2"
+                placeholder="Your hourly rate"
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Response Time</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Availability</label>
               <Input
-                name="responseTime"
-                value={formData.responseTime}
+                name="availability"
+                value={formData.availability}
                 onChange={handleInputChange}
-                disabled={!isEditingSitterSpec}
+                disabled={!isEditing}
                 className="w-full"
-                placeholder="2 hours"
+                placeholder="Available times and days"
               />
             </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Pets Sat Count</label>
-              <Input
-                name="petSatCount"
-                type="number"
-                value={formData.petSatCount}
-                onChange={handleInputChange}
-                disabled={!isEditingSitterSpec}
-                className="w-full"
-                placeholder="50"
-              />
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-gray-700">Available</label>
-              <Switch
-                checked={formData.available}
-                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, available: checked }))}
-                disabled={!isEditingSitterSpec}
-              />
-            </div>
-            
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-3">Specialties</label>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {['Dogs', 'Cats', 'Birds', 'Fish', 'Rabbits', 'Reptiles', 'Exotic Pets', 'Senior Pets'].map((specialty) => (
-                  <div key={specialty} className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id={specialty}
-                      checked={formData.specialties.includes(specialty)}
-                      onChange={(e) => handleSpecialtyChange(specialty, e.target.checked)}
-                      disabled={!isEditingSitterSpec}
-                      className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500"
-                    />
-                    <label htmlFor={specialty} className="text-sm text-gray-700">
-                      {specialty}
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            {sitterSpecData && (
-              <div className="md:col-span-2 bg-gray-50 rounded-lg p-4">
-                <h4 className="font-semibold mb-2">Current Stats</h4>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                  <div>
-                    <span className="text-gray-600">Rating:</span>
-                    <div className="flex items-center">
-                      <Star className="w-4 h-4 text-yellow-400 fill-current mr-1" />
-                      <span className="font-medium">{sitterSpecData.rating || 'N/A'}</span>
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-gray-600">Total Pets Sat:</span>
-                    <p className="font-medium">{sitterSpecData.petSatCount || 0}</p>
-                  </div>
-                  <div>
-                    <span className="text-gray-600">Experience:</span>
-                    <p className="font-medium">{sitterSpecData.experience || 0} years</p>
-                  </div>
-                  <div>
-                    <span className="text-gray-600">Status:</span>
-                    <Badge className={sitterSpecData.available ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
-                      {sitterSpecData.available ? 'Available' : 'Busy'}
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         )}
         
@@ -701,12 +551,12 @@ const Profile = () => {
           </div>
         )}
         
-        {isEditingSitterSpec && formData.role === 'sitter' && (
+        {isEditing && formData.role === 'sitter' && (
           <div className="mt-6 flex gap-4">
-            <Button onClick={handleSaveSitterSpec} className="bg-gradient-to-r from-green-500 to-emerald-500 text-white">
-              Save Sitter Services
+            <Button onClick={handleSaveProfile} className="bg-gradient-to-r from-green-500 to-emerald-500 text-white">
+              Save Changes
             </Button>
-            <Button onClick={() => setIsEditingSitterSpec(false)} variant="outline">
+            <Button onClick={() => setIsEditing(false)} variant="outline">
               Cancel
             </Button>
           </div>
