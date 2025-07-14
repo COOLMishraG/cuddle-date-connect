@@ -1,15 +1,16 @@
 
 import { useState, useEffect } from 'react';
 import Header from '../components/Header';
-import { Users, Star, Calendar, MapPin, Shield, Heart, Clock, CheckCircle, Filter, Search, Loader } from 'lucide-react';
+import { Users, Star, Calendar, MapPin, Shield, Heart, Clock, CheckCircle, Filter, Search, Loader, User } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import BookSitting from '@/components/BookSitting';
 import { userApi } from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
-import { User } from '@/types/user';
+import { User as UserType } from '@/types/user';
 
 const PetSitting = () => {
   const { currentUser } = useAuth();
@@ -40,33 +41,68 @@ const PetSitting = () => {
         setLoading(true);
         const allSitters = await userApi.getAllSitters();
         
-        // Filter out the current user and transform the data
-        const filteredSitters = allSitters
-          .filter(sitter => sitter.username !== currentUser?.username)
-          .map(sitter => ({
-            // Fields from User entity
-            id: sitter.id,
-            name: sitter.name || sitter.displayName || sitter.username,
-            location: sitter.location || 'Location not specified',
-            image: sitter.profileImage || sitterTemplate.image,
-            verified: sitter.isVerified || false, // Use isVerified from User entity
-            username: sitter.username,
-            email: sitter.email,
-            phone: sitter.phone,
-            
-            // Fields from template (not in User entity)
-            experience: sitterTemplate.experience,
-            rating: sitterTemplate.rating,
-            reviewCount: sitterTemplate.reviewCount,
-            price: sitterTemplate.price,
-            available: sitterTemplate.available,
-            specialties: sitterTemplate.specialties,
-            description: sitterTemplate.description,
-            responseTime: sitterTemplate.responseTime,
-            petsSatCount: sitterTemplate.petsSatCount
-          }));
+        // Filter out the current user
+        const filteredSitters = allSitters.filter(sitter => sitter.username !== currentUser?.username);
         
-        setSitters(filteredSitters);
+        // Fetch SitterSpec data for each sitter
+        const sittersWithSpecs = await Promise.all(
+          filteredSitters.map(async (sitter) => {
+            try {
+              // Fetch SitterSpec data for this sitter
+              const sitterSpec = await userApi.getSitterSpecByUsername(sitter.username);
+              
+              return {
+                // Fields from User entity
+                id: sitter.id,
+                name: sitter.name || sitter.displayName || sitter.username,
+                location: sitter.location || 'Location not specified',
+                image: sitter.profileImage || sitterTemplate.image,
+                verified: sitter.isVerified || false,
+                username: sitter.username,
+                email: sitter.email,
+                phone: sitter.phone,
+                
+                // Fields from SitterSpec entity (real data)
+                experience: sitterSpec.experience ? `${sitterSpec.experience}+ years` : sitterTemplate.experience,
+                rating: sitterSpec.rating || sitterTemplate.rating,
+                reviewCount: sitterTemplate.reviewCount, // This might come from reviews later
+                price: sitterSpec.price ? `$${sitterSpec.price}/day` : sitterTemplate.price,
+                available: sitterSpec.available !== undefined ? sitterSpec.available : sitterTemplate.available,
+                specialties: sitterSpec.specialties && sitterSpec.specialties.length > 0 ? sitterSpec.specialties : sitterTemplate.specialties,
+                description: sitterSpec.description || sitterTemplate.description,
+                responseTime: sitterSpec.responseTime || sitterTemplate.responseTime,
+                petsSatCount: sitterSpec.petSatCount || sitterTemplate.petsSatCount
+              };
+            } catch (error) {
+              console.log(`No SitterSpec found for ${sitter.username}, using template data`);
+              // If no SitterSpec found, use template data
+              return {
+                // Fields from User entity
+                id: sitter.id,
+                name: sitter.name || sitter.displayName || sitter.username,
+                location: sitter.location || 'Location not specified',
+                image: sitter.profileImage || sitterTemplate.image,
+                verified: sitter.isVerified || false,
+                username: sitter.username,
+                email: sitter.email,
+                phone: sitter.phone,
+                
+                // Fields from template (fallback)
+                experience: sitterTemplate.experience,
+                rating: sitterTemplate.rating,
+                reviewCount: sitterTemplate.reviewCount,
+                price: sitterTemplate.price,
+                available: sitterTemplate.available,
+                specialties: sitterTemplate.specialties,
+                description: sitterTemplate.description,
+                responseTime: sitterTemplate.responseTime,
+                petsSatCount: sitterTemplate.petsSatCount
+              };
+            }
+          })
+        );
+        
+        setSitters(sittersWithSpecs);
       } catch (error) {
         console.error('Error fetching sitters:', error);
         setError('Failed to load sitters. Please try again later.');
@@ -179,13 +215,23 @@ const PetSitting = () => {
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {sitters.map((sitter) => (
-              <Card key={sitter.id} className={`group overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 ${!sitter.available ? 'opacity-60' : ''}`}>
+              <Card key={sitter.id} className={`group overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 flex flex-col h-full ${!sitter.available ? 'opacity-60' : ''}`}>
                 <div className="relative">
-                  <img 
-                    src={sitter.image} 
-                    alt={sitter.name} 
-                    className="w-full h-48 object-cover"
-                  />
+                  {sitter.image && sitter.image !== sitterTemplate.image ? (
+                    <div className="w-full h-48 relative overflow-hidden">
+                      <img 
+                        src={sitter.image} 
+                        alt={sitter.name} 
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-full h-48 bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 flex items-center justify-center">
+                      <div className="w-32 h-32 bg-white rounded-full border-4 border-indigo-200 flex items-center justify-center shadow-lg">
+                        <User className="w-16 h-16 text-indigo-400" strokeWidth={1.5} />
+                      </div>
+                    </div>
+                  )}
                   <div className="absolute top-4 left-4 flex gap-2">
                     {sitter.verified && (
                       <Badge className="bg-emerald-500 text-white">
@@ -202,17 +248,17 @@ const PetSitting = () => {
                   </div>
                 </div>
                 
-                <CardContent className="p-6">
+                <CardContent className="p-6 flex-1 flex flex-col">
                   <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <h3 className="text-xl font-bold text-slate-800 mb-1">{sitter.name}</h3>
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-slate-800 mb-1 line-clamp-1">{sitter.name}</h3>
                       <div className="flex items-center text-sm text-slate-500 mb-1">
-                        <MapPin className="w-3 h-3 mr-1" />
-                        {sitter.location}
+                        <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
+                        <span className="line-clamp-1">{sitter.location}</span>
                       </div>
                       <div className="flex items-center text-sm text-slate-500">
-                        <Users className="w-3 h-3 mr-1" />
-                        {sitter.experience} experience
+                        <Users className="w-3 h-3 mr-1 flex-shrink-0" />
+                        <span className="line-clamp-1">{sitter.experience} experience</span>
                       </div>
                     </div>
                   </div>
@@ -225,9 +271,9 @@ const PetSitting = () => {
                     </div>
                   </div>
                   
-                  <p className="text-sm text-slate-600 mb-4 line-clamp-2">{sitter.description}</p>
+                  <p className="text-sm text-slate-600 mb-4 line-clamp-2 min-h-[2.5rem]">{sitter.description}</p>
                   
-                  <div className="flex flex-wrap gap-1 mb-4">
+                  <div className="flex flex-wrap gap-1 mb-4 min-h-[1.5rem]">
                     {sitter.specialties.map((specialty, idx) => (
                       <Badge key={idx} variant="outline" className="text-xs">
                         {specialty}
@@ -235,16 +281,16 @@ const PetSitting = () => {
                     ))}
                   </div>
                   
-                  <div className="flex items-center justify-between text-xs text-slate-500 mb-4">
-                    <div className="flex items-center">
-                      <Clock className="w-3 h-3 mr-1" />
-                      Responds in {sitter.responseTime}
+                  <div className="flex items-start justify-between text-xs text-slate-500 mb-4 min-h-[2.5rem]">
+                    <div className="flex items-start flex-1 mr-2">
+                      <Clock className="w-3 h-3 mr-1 mt-0.5 flex-shrink-0" />
+                      <span className="leading-tight">Responds in {sitter.responseTime}</span>
                     </div>
-                    <div>{sitter.petsSatCount}+ pets cared for</div>
+                    <div className="text-right flex-shrink-0">{sitter.petsSatCount}+ pets cared for</div>
                   </div>
                   
                   <Button 
-                    className={`w-full ${sitter.available 
+                    className={`w-full mt-auto ${sitter.available 
                       ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700' 
                       : 'bg-gray-400 cursor-not-allowed'
                     }`}

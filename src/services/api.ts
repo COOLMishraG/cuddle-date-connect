@@ -210,8 +210,55 @@ export const userApi = {
       console.error('Error checking if user exists:', error);
       throw error;
     }
+  },
+
+  // Update sitter spec by username
+  updateSitterSpec: async (username: string, sitterSpecData: any) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/sitter-spec/${username}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(sitterSpecData),
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update sitter spec');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error updating sitter spec:', error);
+      throw error;
+    }
+  },
+
+  // Get sitter spec by username
+  getSitterSpecByUsername: async (username: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/sitter-spec/${username}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to get sitter spec');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error getting sitter spec:', error);
+      throw error;
+    }
   }
-};;
+};
 
 // Pet-related API calls
 export const petApi = {

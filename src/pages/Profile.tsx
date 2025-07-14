@@ -39,8 +39,9 @@ const Profile = () => {
   const [matches, setMatches] = useState<any[]>([]);
   const [showMatchDialog, setShowMatchDialog] = useState(false);
   const [activeMatchTab, setActiveMatchTab] = useState('pending');
+  const [isEditingServices, setIsEditingServices] = useState(false);
   
-  // Form state - User entity fields + additional fields for services/practice
+  // Form state - User entity fields + sitter spec fields
   const [formData, setFormData] = useState({
     // User entity fields
     name: currentUser?.name || '',
@@ -48,7 +49,16 @@ const Profile = () => {
     phone: '',
     location: '',
     role: 'owner',
-    // Additional fields for services/practice (separate API endpoints)
+    // Sitter spec fields (separate entity)
+    price: '',
+    rating: '',
+    available: true,
+    description: '',
+    specialties: [] as string[],
+    petSatCount: '',
+    experience: '',
+    responseTime: '',
+    // Additional fields for services/practice
     services: '',
     capacity: '',
     rate: '',
@@ -219,11 +229,19 @@ const Profile = () => {
       }
       
       try {
-        const [userProfile, userPets, userMatches] = await Promise.all([
-          userApi.getUserProfile(currentUser.id),
-          petApi.getUserPets(currentUser.username || currentUser.id),
-          matchApi.getReceivedMatchRequests(currentUser.username)
-        ]);
+        const userProfile = await userApi.getUserProfile(currentUser.id);
+        const userPets = await petApi.getUserPets(currentUser.username || currentUser.id);
+        const userMatches = await matchApi.getReceivedMatchRequests(currentUser.username);
+        
+        // Fetch sitter spec data if user is a sitter
+        let sitterSpec = null;
+        if (currentUser.username) {
+          try {
+            sitterSpec = await userApi.getSitterSpecByUsername(currentUser.username);
+          } catch (error) {
+            console.log('No sitter spec found for user, using defaults');
+          }
+        }
         
         if (userProfile) {
           setFormData({
@@ -233,7 +251,16 @@ const Profile = () => {
             phone: userProfile.phone || '',
             location: userProfile.location || '',
             role: userProfile.role?.toLowerCase() || 'owner',
-            // Additional fields (may be empty if not returned from User API)
+            // Sitter spec fields (from separate entity)
+            price: sitterSpec?.price?.toString() || '',
+            rating: sitterSpec?.rating?.toString() || '',
+            available: sitterSpec?.available !== undefined ? sitterSpec.available : true,
+            description: sitterSpec?.description || '',
+            specialties: sitterSpec?.specialties || [],
+            petSatCount: sitterSpec?.petSatCount?.toString() || '',
+            experience: sitterSpec?.experience?.toString() || '',
+            responseTime: sitterSpec?.responseTime || '',
+            // Additional legacy fields
             services: userProfile.services || '',
             capacity: userProfile.capacity || '',
             rate: userProfile.rate || '',
@@ -256,39 +283,43 @@ const Profile = () => {
     fetchUserData();
   }, [currentUser]);
 
-  if (authLoading || isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-          className="flex flex-col items-center"
-        >
-          <Loader2 className="h-12 w-12 text-indigo-600 mb-4" />
-          <p className="text-lg font-medium text-gray-600">Loading your awesome profile...</p>
-        </motion.div>
-      </div>
-    );
-  }
+  const handleSaveSitterSpec = async () => {
+    try {
+      if (!currentUser?.username) {
+        toast({ title: "Error", description: "Username required for sitter spec update", variant: "destructive" });
+        return;
+      }
 
-  if (!currentUser) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-100 via-pink-50 to-purple-100">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.5 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center"
-        >
-          <Heart className="h-16 w-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Authentication Required</h2>
-          <p className="text-gray-600 mb-6">Please sign in to view your profile</p>
-          <Button onClick={() => navigate('/signin')} className="bg-gradient-to-r from-red-500 to-pink-500 text-white">
-            Sign In
-          </Button>
-        </motion.div>
-      </div>
-    );
-  }
+      // Only send sitter spec fields
+      const sitterSpecData = {
+        price: formData.price ? Number(formData.price) : null,
+        rating: formData.rating ? Number(formData.rating) : null,
+        available: formData.available,
+        description: formData.description,
+        specialties: formData.specialties,
+        petSatCount: formData.petSatCount ? Number(formData.petSatCount) : 0,
+        experience: formData.experience ? Number(formData.experience) : 0,
+        responseTime: formData.responseTime
+      };
+
+      await userApi.updateSitterSpec(currentUser.username, sitterSpecData);
+      
+      toast({ title: "Success", description: "Sitter services updated successfully" });
+      setIsEditingServices(false);
+    } catch (error) {
+      console.error('Error updating sitter spec:', error);
+      toast({ title: "Error", description: "Failed to update sitter services", variant: "destructive" });
+    }
+  };
+
+  const handleSpecialtyChange = (specialty: string) => {
+    setFormData(prev => ({
+      ...prev,
+      specialties: prev.specialties.includes(specialty)
+        ? prev.specialties.filter(s => s !== specialty)
+        : [...prev.specialties, specialty]
+    }));
+  };
 
   const renderPersonalInfo = () => (
     <motion.div
@@ -477,60 +508,145 @@ const Profile = () => {
       className="space-y-6"
     >
       <Card className="p-6 bg-white/80 backdrop-blur-lg border-0 shadow-xl">
-        <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
-          <Briefcase className="w-5 h-5 text-green-600" />
-          Services & Offerings
-        </h3>
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-xl font-bold flex items-center gap-2">
+            <Briefcase className="w-5 h-5 text-green-600" />
+            Services & Offerings
+          </h3>
+          {formData.role === 'sitter' && (
+            <Button
+              onClick={() => setIsEditingServices(!isEditingServices)}
+              variant="outline"
+              className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 hover:from-green-600 hover:to-emerald-600"
+            >
+              <Edit className="w-4 h-4 mr-2" />
+              {isEditingServices ? 'Cancel Edit' : 'Edit Services'}
+            </Button>
+          )}
+        </div>
         
         {formData.role === 'sitter' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Services Offered</label>
-              <Textarea
-                name="services"
-                value={formData.services}
-                onChange={handleInputChange}
-                disabled={!isEditing}
-                rows={3}
-                className="w-full"
-                placeholder="Pet sitting, dog walking, overnight care..."
-              />
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                <Textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  disabled={!isEditingServices}
+                  rows={3}
+                  className="w-full"
+                  placeholder="Tell clients about your pet sitting services..."
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Price per Day ($)</label>
+                <Input
+                  name="price"
+                  type="number"
+                  value={formData.price}
+                  onChange={handleInputChange}
+                  disabled={!isEditingServices}
+                  className="w-full"
+                  placeholder="30"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Experience (years)</label>
+                <Input
+                  name="experience"
+                  type="number"
+                  value={formData.experience}
+                  onChange={handleInputChange}
+                  disabled={!isEditingServices}
+                  className="w-full"
+                  placeholder="2"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Response Time</label>
+                <Input
+                  name="responseTime"
+                  value={formData.responseTime}
+                  onChange={handleInputChange}
+                  disabled={!isEditingServices}
+                  className="w-full"
+                  placeholder="2 hours"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Pets Sat Count</label>
+                <Input
+                  name="petSatCount"
+                  type="number"
+                  value={formData.petSatCount}
+                  onChange={handleInputChange}
+                  disabled={!isEditingServices}
+                  className="w-full"
+                  placeholder="50"
+                />
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <label className="text-sm font-medium text-gray-700">Available for Bookings</label>
+                <Switch
+                  checked={formData.available}
+                  disabled={!isEditingServices}
+                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, available: checked }))}
+                />
+              </div>
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Capacity</label>
-              <Input
-                name="capacity"
-                value={formData.capacity}
-                onChange={handleInputChange}
-                disabled={!isEditing}
-                className="w-full"
-                placeholder="Number of pets you can handle"
-              />
+              <label className="block text-sm font-medium text-gray-700 mb-2">Specialties</label>
+              <div className="flex flex-wrap gap-2">
+                {['Dogs', 'Cats', 'Birds', 'Small Animals', 'Exotic Pets', 'Senior Pets', 'Puppies/Kittens'].map((specialty) => (
+                  <Button
+                    key={specialty}
+                    type="button"
+                    variant={formData.specialties.includes(specialty) ? "default" : "outline"}
+                    size="sm"
+                    disabled={!isEditingServices}
+                    onClick={() => handleSpecialtyChange(specialty)}
+                    className="text-xs"
+                  >
+                    {specialty}
+                  </Button>
+                ))}
+              </div>
             </div>
             
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Hourly Rate ($)</label>
-              <Input
-                name="rate"
-                value={formData.rate}
-                onChange={handleInputChange}
-                disabled={!isEditing}
-                className="w-full"
-                placeholder="Your hourly rate"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Availability</label>
-              <Input
-                name="availability"
-                value={formData.availability}
-                onChange={handleInputChange}
-                disabled={!isEditing}
-                className="w-full"
-                placeholder="Available times and days"
-              />
+            {/* Legacy fields for backward compatibility */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-200">
+              <div>
+                <label className="block text-sm font-medium text-gray-500 mb-2">Legacy: Services Offered</label>
+                <Textarea
+                  name="services"
+                  value={formData.services}
+                  onChange={handleInputChange}
+                  disabled={!isEditing}
+                  rows={2}
+                  className="w-full text-sm"
+                  placeholder="Pet sitting, dog walking, overnight care..."
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-500 mb-2">Legacy: Capacity</label>
+                <Input
+                  name="capacity"
+                  value={formData.capacity}
+                  onChange={handleInputChange}
+                  disabled={!isEditing}
+                  className="w-full text-sm"
+                  placeholder="Number of pets you can handle"
+                />
+              </div>
             </div>
           </div>
         )}
@@ -551,14 +667,28 @@ const Profile = () => {
           </div>
         )}
         
-        {isEditing && formData.role === 'sitter' && (
+        {formData.role === 'sitter' && (
           <div className="mt-6 flex gap-4">
-            <Button onClick={handleSaveProfile} className="bg-gradient-to-r from-green-500 to-emerald-500 text-white">
-              Save Changes
-            </Button>
-            <Button onClick={() => setIsEditing(false)} variant="outline">
-              Cancel
-            </Button>
+            {isEditing ? (
+              <>
+                <Button onClick={handleSaveProfile} className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white">
+                  Save Profile Info
+                </Button>
+                <Button onClick={() => setIsEditing(false)} variant="outline">
+                  Cancel Profile Edit
+                </Button>
+              </>
+            ) : (
+              <Button onClick={() => setIsEditing(true)} className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white">
+                Edit Profile
+              </Button>
+            )}
+            
+            {isEditingServices && (
+              <Button onClick={handleSaveSitterSpec} className="bg-gradient-to-r from-green-500 to-emerald-500 text-white">
+                Save Services
+              </Button>
+            )}
           </div>
         )}
       </Card>
