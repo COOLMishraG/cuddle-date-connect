@@ -4,7 +4,7 @@ export const API_BASE_URL = 'https://pet-match-backbone.onrender.com'; // Your b
 // If your frontend runs on port 8080, set FRONTEND_URL=http://localhost:8080 in your backend
 
 // Posts API Base URL - ECS public IP for post-related endpoints
-export const POSTS_API_BASE_URL = 'http://35.170.187.9:3001';
+export const POSTS_API_BASE_URL = 'http://35.170.187.9';
 
 import { User } from '@/types/user';
 import { Pet, PetData } from '@/types/pet';
