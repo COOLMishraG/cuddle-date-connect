@@ -41,17 +41,28 @@ const Index = () => {
       if (isAuthenticated && currentUser) {
         try {
           setLoadingRequests(true);
-          const requests = await matchApi.getReceivedMatchRequests(currentUser.id);
-          setMatchRequests(requests);
+          console.log('Fetching match requests for user:', currentUser);
+          // Get received match requests for the current user
+          const requests = await matchApi.getReceivedMatchRequests(currentUser.username);
+          console.log('Received match requests:', requests);
+          // Filter only PENDING requests
+          const pendingRequests = requests.filter(req => req.status === 'PENDING');
+          console.log('Pending match requests:', pendingRequests);
+          setMatchRequests(pendingRequests);
         } catch (error) {
           console.error('Error fetching match requests:', error);
         } finally {
           setLoadingRequests(false);
         }
+      } else {
+        console.log('User not authenticated or no current user', { isAuthenticated, currentUser });
       }
     };
 
     fetchMatchRequests();
+    // Set up periodic refresh
+    const interval = setInterval(fetchMatchRequests, 30000); // Refresh every 30 seconds
+    return () => clearInterval(interval);
   }, [isAuthenticated, currentUser]);
 
   const handleRequestStatusChange = async () => {
@@ -671,11 +682,23 @@ const Index = () => {
       </footer>
 
       {/* Match Deck Cards Overlay */}
-      {isAuthenticated && matchRequests.length > 0 && !loadingRequests && (
+      {(() => {
+        console.log('Render conditions:', { isAuthenticated, matchRequestsCount: matchRequests.length, loadingRequests });
+        return null;
+      })()}
+      {isAuthenticated && matchRequests.length > 0 && !loadingRequests ? (
         <MatchDeckCards 
           matchRequests={matchRequests}
           onStatusChange={handleRequestStatusChange}
         />
+      ) : (
+        // Debug message in DOM
+        <div className="hidden">
+          Not showing match deck because:
+          {!isAuthenticated && "Not authenticated"}
+          {!matchRequests.length && "No match requests"}
+          {loadingRequests && "Still loading"}
+        </div>
       )}
     </div>
   );
