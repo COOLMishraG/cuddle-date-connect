@@ -1,5 +1,5 @@
 // API Base URL - replace with your actual backend URL
-export const API_BASE_URL = 'https://pet-match-backbone.onrender.co'; // Your backend port
+export const API_BASE_URL = 'https://pet-match-backbone.onrender.com';
 // Note: Make sure your backend redirects to the correct frontend port
 // If your frontend runs on port 8080, set FRONTEND_URL=http://localhost:8080 in your backend
 
