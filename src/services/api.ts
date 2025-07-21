@@ -1,5 +1,5 @@
 // API Base URL - replace with your actual backend URL
-export const API_BASE_URL = 'https://pet-match-backbone.onrender.com'; // Your backend port
+export const API_BASE_URL = 'http://localhost:3000'; // Your backend port
 // Note: Make sure your backend redirects to the correct frontend port
 // If your frontend runs on port 8080, set FRONTEND_URL=http://localhost:8080 in your backend
 
@@ -415,6 +415,35 @@ export const petApi = {
       return await response.json();
     } catch (error) {
       console.error('Error getting all pets:', error);
+      throw error;
+    }
+  },
+
+  // Analyze pet image from URL
+  analyzePetImage: async (imageUrl: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/pets/analyze-image-url`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ imageUrl }),
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to analyze pet image');
+      }
+
+      const result = await response.json();
+      return {
+        animalType: result.animalType,
+        breed: result.breed,
+        description: result.description
+      };
+    } catch (error) {
+      console.error('Error analyzing pet image:', error);
       throw error;
     }
   }

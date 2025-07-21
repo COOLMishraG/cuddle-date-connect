@@ -43,8 +43,15 @@ interface AddPetFormProps {
   existingPet?: any;
 }
 
+interface AiAnalysisResult {
+  animalType: string;
+  breed: string;
+  description: string;
+}
+
 const AddPetForm = ({ open, onClose, onPetAdded, existingPet }: AddPetFormProps) => {
   const { currentUser } = useAuth();
+  const [aiAnalysis, setAiAnalysis] = useState<AiAnalysisResult | null>(null);
   
   // Initial form data
   const initialFormData: PetFormData = {
@@ -210,42 +217,78 @@ const AddPetForm = ({ open, onClose, onPetAdded, existingPet }: AddPetFormProps)
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] max-h-[85vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold fredoka text-burgundy">
-            {existingPet ? 'Edit Pet' : 'Add New Pet'}
-          </DialogTitle>
-          <DialogDescription>
-            {existingPet 
-              ? 'Update your pet\'s information below' 
-              : 'Fill in your pet\'s details to add them to your profile'}
-          </DialogDescription>
-        </DialogHeader>
-        
-        <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+      <DialogContent className="sm:max-w-[900px] max-h-[85vh] overflow-y-auto">
+        <div className="flex gap-6">
+          <div className="flex-1">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold fredoka text-burgundy">
+                {existingPet ? 'Edit Pet' : 'Add New Pet'}
+              </DialogTitle>
+              <DialogDescription>
+                {existingPet 
+                  ? 'Update your pet\'s information below' 
+                  : 'Fill in your pet\'s details to add them to your profile'}
+              </DialogDescription>
+            </DialogHeader>
+            
+            <form onSubmit={handleSubmit} className="space-y-4 mt-4">
           {/* Pet Images */}
           <div className="space-y-2">
             <Label>Pet Photo</Label>
             <div className="flex flex-wrap gap-2">
               {/* Display uploaded image or placeholder */}
               {formData.imageUrl ? (
-                <div className="relative w-20 h-20">
-                  <img
-                    src={formData.imageUrl}
-                    alt="Pet"
-                    className="w-full h-full object-cover rounded-md"
-                  />
-                  <button
+                <div className="flex gap-2 items-start">
+                  <div className="relative w-20 h-20">
+                    <img
+                      src={formData.imageUrl}
+                      alt="Pet"
+                      className="w-full h-full object-cover rounded-md"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ 
+                        ...prev, 
+                        imageUrl: '', 
+                        images: ['/placeholder.svg'] 
+                      }))}
+                      className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                  <Button
                     type="button"
-                    onClick={() => setFormData(prev => ({ 
-                      ...prev, 
-                      imageUrl: '', 
-                      images: ['/placeholder.svg'] 
-                    }))}
-                    className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-2"
+                    onClick={async () => {
+                      try {
+                        const result = await petApi.analyzePetImage(formData.imageUrl);
+                        // Update type and breed automatically
+                        setFormData(prev => ({
+                          ...prev,
+                          animal: result.animalType,
+                          breed: result.breed,
+                        }));
+                        // Show AI analysis
+                        setAiAnalysis(result);
+                        toast({
+                          title: "AI Analysis Complete",
+                          description: "Review the AI suggested details.",
+                        });
+                      } catch (error) {
+                        toast({
+                          title: "Analysis Failed",
+                          description: "Could not analyze the pet image. Please fill in the details manually.",
+                          variant: "destructive"
+                        });
+                      }
+                    }}
                   >
-                    <X size={12} />
-                  </button>
+                    <Camera size={16} />
+                    Analyze with AI
+                  </Button>
                 </div>
               ) : (
                 <button
@@ -444,6 +487,56 @@ const AddPetForm = ({ open, onClose, onPetAdded, existingPet }: AddPetFormProps)
             </Button>
           </DialogFooter>
         </form>
+          </div>
+
+          {/* AI Analysis Side Panel */}
+          {aiAnalysis && (
+            <div className="w-80 border-l pl-6 space-y-6">
+              <div>
+                <h3 className="text-lg font-bold text-burgundy mb-2">AI Analysis Results</h3>
+                <p className="text-sm text-muted-foreground">Review the AI-suggested details for your pet</p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="font-semibold">Detected Animal Type</Label>
+                  <p className="text-sm text-muted-foreground">{aiAnalysis.animalType}</p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label className="font-semibold">Detected Breed</Label>
+                  <p className="text-sm text-muted-foreground">{aiAnalysis.breed}</p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="font-semibold">Suggested Description</Label>
+                  <div className="p-3 bg-muted rounded-lg">
+                    <p className="text-sm text-muted-foreground">{aiAnalysis.description}</p>
+                  </div>
+                </div>
+
+                <Button
+                  type="button"
+                  onClick={() => {
+                    setFormData(prev => ({
+                      ...prev,
+                      animal: aiAnalysis.animalType as AnimalType,
+                      breed: aiAnalysis.breed,
+                      description: aiAnalysis.description
+                    }));
+                    toast({
+                      title: "AI Details Added",
+                      description: "Animal type, breed, and description have been added to the form.",
+                    });
+                  }}
+                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                >
+                  Add to Pet Description
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );
