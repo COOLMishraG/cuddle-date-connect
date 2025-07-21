@@ -17,7 +17,8 @@ import {
   X,
   FileText,
   Stethoscope,
-  User
+  User,
+  Edit
 } from 'lucide-react';
 import { formatAnimalType, getGenderSymbol, getAnimalEmoji } from '@/utils/petUtils';
 import { PetGender, AnimalType } from '@/types/pet';
@@ -28,9 +29,10 @@ interface PetProfileDialogProps {
   open: boolean;
   onClose: () => void;
   pet: any;
+  isOwnPet?: boolean;
 }
 
-const PetProfileDialog = ({ open, onClose, pet }: PetProfileDialogProps) => {
+const PetProfileDialog = ({ open, onClose, pet, isOwnPet = false }: PetProfileDialogProps) => {
   const { currentUser } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
   const [contactForm, setContactForm] = useState({
@@ -219,21 +221,112 @@ const PetProfileDialog = ({ open, onClose, pet }: PetProfileDialogProps) => {
                 <FileText className="w-5 h-5 inline mr-2" />
                 Pet Profile
               </button>
-              <button
-                className={`flex-1 py-4 px-6 font-medium transition-colors ${
-                  activeTab === 'contact' 
-                    ? 'text-purple-600 border-b-2 border-purple-600 bg-purple-50' 
-                    : 'text-gray-600 hover:text-purple-600'
-                }`}
-                onClick={() => setActiveTab('contact')}
-              >
-                <MessageCircle className="w-5 h-5 inline mr-2" />
-                Request Match
-              </button>
+              {!isOwnPet && (
+                <button
+                  className={`flex-1 py-4 px-6 font-medium transition-colors ${
+                    activeTab === 'contact' 
+                      ? 'text-purple-600 border-b-2 border-purple-600 bg-purple-50' 
+                      : 'text-gray-600 hover:text-purple-600'
+                  }`}
+                  onClick={() => setActiveTab('contact')}
+                >
+                  <MessageCircle className="w-5 h-5 inline mr-2" />
+                  Request Match
+                </button>
+              )}
+              {isOwnPet && (
+                <button
+                  className={`flex-1 py-4 px-6 font-medium transition-colors ${
+                    activeTab === 'edit' 
+                      ? 'text-purple-600 border-b-2 border-purple-600 bg-purple-50' 
+                      : 'text-gray-600 hover:text-purple-600'
+                  }`}
+                  onClick={() => setActiveTab('edit')}
+                >
+                  <Edit className="w-5 h-5 inline mr-2" />
+                  Edit Profile
+                </button>
+              )}
             </div>
             
             {/* Content */}
             <div className="p-6 max-h-96 overflow-y-auto">
+              {activeTab === 'edit' && isOwnPet && (
+                <div className="space-y-6">
+                  <div className="text-center mb-6">
+                    <h3 className="text-2xl font-bold text-gray-800 mb-2">Edit Pet Profile</h3>
+                    <p className="text-gray-600">Update {pet.name}'s information</p>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Pet Name</label>
+                      <Input defaultValue={pet.name} />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Breed</label>
+                      <Input defaultValue={pet.breed} />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Age</label>
+                        <Input type="number" defaultValue={pet.age} />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Gender</label>
+                        <Select defaultValue={pet.gender}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="MALE">Male</SelectItem>
+                            <SelectItem value="FEMALE">Female</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                      <Input defaultValue={pet.location} />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Health Status</label>
+                      <Select defaultValue={petDetails.healthStatus}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Excellent">Excellent</SelectItem>
+                          <SelectItem value="Good">Good</SelectItem>
+                          <SelectItem value="Fair">Fair</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="flex gap-4">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="flex-1"
+                        onClick={onClose}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="button"
+                        className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+                      >
+                        Save Changes
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {activeTab === 'profile' && (
                 <div className="space-y-6">
                   {/* Owner Info */}

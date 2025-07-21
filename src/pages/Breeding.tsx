@@ -23,6 +23,8 @@ const Breeding = () => {
   const [showPetProfile, setShowPetProfile] = useState(false);
   const [isMyPetsMinimized, setIsMyPetsMinimized] = useState(false);
   const [showMyPetsWidget, setShowMyPetsWidget] = useState(true);
+  const [selectedMyPet, setSelectedMyPet] = useState<any>(null);
+  const [showMyPetProfile, setShowMyPetProfile] = useState(false);
   const [pets, setPets] = useState<any[]>([]);
   const [myPets, setMyPets] = useState<any[]>([]);
   const [loadingPets, setLoadingPets] = useState(true);
@@ -309,6 +311,17 @@ const Breeding = () => {
         pet={selectedPet}
       />
 
+      {/* My Pet Profile Dialog */}
+      <PetProfileDialog
+        open={showMyPetProfile}
+        onClose={() => {
+          setShowMyPetProfile(false);
+          setSelectedMyPet(null);
+        }}
+        pet={selectedMyPet}
+        isOwnPet={true}
+      />
+
       {/* Floating My Pets Widget */}
       {currentUser && showMyPetsWidget && (
         <motion.div
@@ -370,6 +383,10 @@ const Breeding = () => {
                             <div
                               key={pet.id}
                               className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 transition-all duration-200 cursor-pointer group"
+                              onClick={() => {
+                                setSelectedMyPet(pet);
+                                setShowMyPetProfile(true);
+                              }}
                             >
                               <div className="relative">
                                 <img
