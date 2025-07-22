@@ -164,10 +164,13 @@ const PetProfileDialog = ({ open, onClose, pet, isOwnPet = false }: PetProfileDi
           >
             {/* Header */}
             <div className="relative h-64 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500">
-              <img 
-                src={`https://images.unsplash.com/photo-${pet.id === '1' ? '1552053831-71594a27632d' : '1587300003388-c5de40dab3be'}?w=800&h=400&fit=crop&auto=format`}
+              <img
+                src={pet.imageUrl || pet.image || pet.photoUrl || `https://images.unsplash.com/photo-${pet.id === '1' ? '1552053831-71594a27632d' : '1587300003388-c5de40dab3be'}?w=800&h=400&fit=crop&auto=format`}
                 alt={pet.name}
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.src = `https://images.unsplash.com/photo-1587300003388-c5de40dab3be?w=800&h=400&fit=crop&auto=format`;
+                }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
               
@@ -334,7 +337,10 @@ const PetProfileDialog = ({ open, onClose, pet, isOwnPet = false }: PetProfileDi
                     <CardContent className="p-6">
                       <div className="flex items-center gap-4">
                         <Avatar className="w-16 h-16">
-                          <AvatarImage src="/placeholder.svg" alt={pet.owner?.displayName || pet.owner?.name || 'Pet Owner'} />
+                          <AvatarImage
+                            src={pet.owner?.profileImage || pet.owner?.photoUrl || '/placeholder.svg'}
+                            alt={pet.owner?.displayName || pet.owner?.name || 'Pet Owner'}
+                          />
                           <AvatarFallback className="bg-purple-500 text-white text-xl">
                             {(pet.owner?.displayName || pet.owner?.name || 'Pet Owner').split(' ').map((n: string) => n[0]).join('')}
                           </AvatarFallback>
@@ -527,12 +533,12 @@ const PetProfileDialog = ({ open, onClose, pet, isOwnPet = false }: PetProfileDi
                                     <SelectItem key={myPet.id} value={myPet.id}>
                                       <div className="flex items-center gap-2">
                                         <span>{getAnimalEmoji(myPet.animal)}</span>
-                                        <span className="font-medium text-green-700">{myPet.name}</span>
-                                        <span className="text-gray-500">({myPet.breed})</span>
-                                        <span className="text-xs text-gray-400">
+                                        <span className="font-semibold text-gray-900">{myPet.name}</span>
+                                        <span className="text-sm text-gray-800">({myPet.breed})</span>
+                                        <span className="text-xs text-gray-700">
                                           {getGenderSymbol(myPet.gender)} {myPet.age}y
                                         </span>
-                                        <span className="text-xs text-green-600">✓</span>
+                                        <span className="text-xs text-green-700 font-bold">✓</span>
                                       </div>
                                     </SelectItem>
                                   ))}
@@ -562,12 +568,12 @@ const PetProfileDialog = ({ open, onClose, pet, isOwnPet = false }: PetProfileDi
                                       <SelectItem key={myPet.id} value={myPet.id} disabled>
                                         <div className="flex items-center gap-2 opacity-50">
                                           <span>{getAnimalEmoji(myPet.animal)}</span>
-                                          <span>{myPet.name}</span>
-                                          <span className="text-gray-500">({myPet.breed})</span>
-                                          <span className="text-xs text-gray-400">
+                                          <span className="font-semibold text-gray-700">{myPet.name}</span>
+                                          <span className="text-sm text-gray-600">({myPet.breed})</span>
+                                          <span className="text-xs text-gray-500">
                                             {getGenderSymbol(myPet.gender)} {myPet.age}y
                                           </span>
-                                          <span className="text-xs text-red-600">({reason})</span>
+                                          <span className="text-xs text-red-700 font-bold">({reason})</span>
                                         </div>
                                       </SelectItem>
                                     );
