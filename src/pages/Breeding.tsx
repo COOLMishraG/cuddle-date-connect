@@ -198,10 +198,10 @@ const Breeding = () => {
             {pets.map((pet) => (
               <Card key={pet.id} className="glass-card border-0 bg-white/40 backdrop-blur-lg hover:bg-white/50 transition-all duration-300 hover:scale-105 hover:shadow-xl group">
                 <div className="relative h-64 overflow-hidden rounded-t-2xl">
-                  <img 
-                    src={pet.image || pet.photoUrl || `https://images.unsplash.com/photo-${pet.id === '1' ? '1552053831-71594a27632d' : '1587300003388-c5de40dab3be'}?w=400&h=300&fit=crop&auto=format`} 
-                    alt={pet.name} 
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" 
+                  <img
+                    src={pet.imageUrl || pet.image || pet.photoUrl || `https://images.unsplash.com/photo-${pet.id === '1' ? '1552053831-71594a27632d' : '1587300003388-c5de40dab3be'}?w=400&h=300&fit=crop&auto=format`}
+                    alt={pet.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                     onError={(e) => {
                       e.currentTarget.src = `https://images.unsplash.com/photo-1587300003388-c5de40dab3be?w=400&h=300&fit=crop&auto=format`;
                     }}
@@ -390,13 +390,14 @@ const Breeding = () => {
                             >
                               <div className="relative">
                                 <img
-                                  src={pet.image || pet.photoUrl || `https://images.unsplash.com/photo-1551717743-49959800b1f6?w=200&h=200&fit=crop&auto=format`}
+                                  src={pet.imageUrl || pet.image || pet.photoUrl || `https://images.unsplash.com/photo-1551717743-49959800b1f6?w=200&h=200&fit=crop&auto=format`}
                                   alt={pet.name}
                                   className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm"
                                   onError={(e) => {
                                     e.currentTarget.src = `https://images.unsplash.com/photo-1551717743-49959800b1f6?w=200&h=200&fit=crop&auto=format`;
                                   }}
-                                />                              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                                />
+                                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
                                 <span className="text-xs text-white">
                                   {pet.gender === PetGender.FEMALE || pet.gender === 'Female' || pet.gender === 'female' ? '♀' : '♂'}
                                 </span>
