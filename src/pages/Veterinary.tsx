@@ -15,88 +15,88 @@ const Veterinary = () => {
   // const [vets, setVets] = useState<User[]>([]);
   // const [isLoading, setIsLoading] = useState(true);
 
-  // Sample data for veterinarians
+  // Sample data for Indian veterinarians
   const vets: User[] = [
     {
       id: '1',
-      name: 'Dr. Evelyn Reed',
-      email: 'evelyn.reed@vet.com',
-      username: 'evelynreed',
-      profileImage: 'https://i.pravatar.cc/300?u=vet1',
+      name: 'Dr. Priya Sharma',
+      email: 'priya.sharma@vetindia.com',
+      username: 'priyasharma',
+      profileImage: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&h=300&fit=facearea&facepad=2&q=80', // Indian female vet portrait
       role: UserRole.VET,
       specialty: 'Cardiology',
-      experience: '12 years',
-      location: 'New York, NY',
+      experience: '14 years',
+      location: 'Mumbai, Maharashtra',
       rating: 4.9,
       verified: true,
       available: true,
     },
     {
       id: '2',
-      name: 'Dr. Samuel Chen',
-      email: 'samuel.chen@vet.com',
-      username: 'samuelchen',
-      profileImage: 'https://i.pravatar.cc/300?u=vet2',
+      name: 'Dr. Arjun Patel',
+      email: 'arjun.patel@vetindia.com',
+      username: 'arjunpatel',
+      profileImage: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=400&h=300&fit=facearea&facepad=2&q=80', // Indian male vet portrait
       role: UserRole.VET,
       specialty: 'Orthopedics',
-      experience: '8 years',
-      location: 'San Francisco, CA',
+      experience: '10 years',
+      location: 'Ahmedabad, Gujarat',
       rating: 4.8,
       verified: true,
       available: false,
     },
     {
       id: '3',
-      name: 'Dr. Olivia Martinez',
-      email: 'olivia.martinez@vet.com',
-      username: 'oliviamartinez',
-      profileImage: 'https://i.pravatar.cc/300?u=vet3',
+      name: 'Dr. Meera Nair',
+      email: 'meera.nair@vetindia.com',
+      username: 'meeranair',
+      profileImage: 'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?w=400&h=300&fit=crop&q=80', // Indian vet clinic
       role: UserRole.VET,
       specialty: 'Dermatology',
-      experience: '15 years',
-      location: 'Miami, FL',
+      experience: '12 years',
+      location: 'Kochi, Kerala',
       rating: 4.9,
       verified: true,
       available: true,
     },
-     {
+    {
       id: '4',
-      name: 'Dr. Benjamin Carter',
-      email: 'ben.carter@vet.com',
-      username: 'bencarter',
-      profileImage: 'https://i.pravatar.cc/300?u=vet4',
+      name: 'Dr. Rohan Singh',
+      email: 'rohan.singh@vetindia.com',
+      username: 'rohansingh',
+      profileImage: 'https://images.unsplash.com/photo-1551601651-2a8555f1a136?w=400&h=300&fit=crop&q=80', // Indian vet clinic
       role: UserRole.VET,
       specialty: 'Neurology',
-      experience: '10 years',
-      location: 'Chicago, IL',
+      experience: '11 years',
+      location: 'Delhi, Delhi',
       rating: 4.7,
       verified: false,
       available: true,
     },
     {
       id: '5',
-      name: 'Dr. Chloe Nguyen',
-      email: 'chloe.nguyen@vet.com',
-      username: 'chloenguyen',
-      profileImage: 'https://i.pravatar.cc/300?u=vet5',
+      name: 'Dr. Anjali Deshmukh',
+      email: 'anjali.deshmukh@vetindia.com',
+      username: 'anjalideshmukh',
+      profileImage: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=400&h=300&fit=facearea&facepad=2&q=80', // Indian female vet portrait
       role: UserRole.VET,
       specialty: 'Oncology',
       experience: '9 years',
-      location: 'Seattle, WA',
+      location: 'Pune, Maharashtra',
       rating: 4.8,
       verified: true,
       available: false,
     },
     {
       id: '6',
-      name: 'Dr. Marcus Rodriguez',
-      email: 'marcus.r@vet.com',
-      username: 'marcusr',
-      profileImage: 'https://i.pravatar.cc/300?u=vet6',
+      name: 'Dr. Suresh Reddy',
+      email: 'suresh.reddy@vetindia.com',
+      username: 'sureshreddy',
+      profileImage: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=400&h=300&fit=crop&q=80', // Indian vet clinic
       role: UserRole.VET,
       specialty: 'General Surgery',
-      experience: '18 years',
-      location: 'Houston, TX',
+      experience: '16 years',
+      location: 'Hyderabad, Telangana',
       rating: 5.0,
       verified: true,
       available: true,
@@ -198,7 +198,7 @@ const Veterinary = () => {
             <Card key={vet.id} className="glass-card border-0 bg-white/40 backdrop-blur-lg hover:bg-white/50 transition-all duration-300 hover:scale-105 hover:shadow-xl group">
               <div className="relative h-56 overflow-hidden rounded-t-2xl">
                 <img 
-                  src={`https://images.unsplash.com/photo-${vet.id === '1' ? '1612349317150-e413d8ba47a8' : vet.id === '2' ? '1582750433449-648ed127bb54' : vet.id === '3' ? '1594824309503-98485fa80d31' : vet.id === '4' ? '1612349307596-71920d83b1b3' : vet.id === '5' ? '1559839734-2b71ea197ec2' : '1582467420946-94b8bba9c76a'}?w=400&h=300&fit=crop&auto=format`} 
+                  src={vet.profileImage} 
                   alt={vet.name} 
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" 
                 />
